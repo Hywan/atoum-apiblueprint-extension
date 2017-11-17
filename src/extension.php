@@ -23,7 +23,7 @@ class extension implements atoum\extension
         }
     }
 
-    public function addToRunner(atoum\runner $runner, bool $removePreviousReports = false)
+    public function addToRunner(atoum\runner $runner)
     {
         $runner->addExtension($this);
 
