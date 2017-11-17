@@ -30,6 +30,7 @@ class extension implements atoum\extension
     public function addToRunner(atoum\runner $runner)
     {
         $runner->addExtension($this);
+        (new compiler())->compile($this->_apibFinder);
 
         return $this;
     }
