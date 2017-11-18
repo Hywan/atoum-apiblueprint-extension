@@ -18,6 +18,8 @@
         }
     },
     "require": {
+        "php"              : ">7.0",
+        "ext-mbstring"     : "*",
         "atoum/atoum"      : "~3.2",
         "league/commonmark": "~0.16"
     },

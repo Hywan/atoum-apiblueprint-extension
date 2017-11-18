@@ -16,10 +16,31 @@ class Parser extends test
     public function test_empty_string()
     {
         $this
-            ->given($parser = new SUT())
-            ->when($result = $parser->parse(''))
+            ->given(
+                $parser = new SUT(),
+                $datum  = ''
+            )
+            ->when($result = $parser->parse($datum))
             ->then
                 ->object($result)
                     ->isEqualTo(new IR\Document());
+    }
+
+    public function test_format_and_host()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  = "\n\n\n" . 'FORMAT: 1A' . "\n" . 'HOST: https://example.org/'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->object($result)
+                    ->isInstanceOf(IR\Document::class)
+                ->array($result->metadata)
+                    ->isEqualTo([
+                        'format' => '1A',
+                        'host'   => 'https://example.org/'
+                    ]);
     }
 }

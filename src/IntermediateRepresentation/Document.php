@@ -6,4 +6,5 @@ namespace atoum\apiblueprint\IntermediateRepresentation;
 
 class Document
 {
+    public $metadata = [];
 }
