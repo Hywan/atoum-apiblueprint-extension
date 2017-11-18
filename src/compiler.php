@@ -11,7 +11,7 @@ class compiler
     protected static $_parser = null;
     protected static $_target = null;
 
-    public function compile(iterable $finder, file $outputFile = null, parser $parser = null, target $target = null)
+    public function compile(\Traversable $finder, file $outputFile = null, parser $parser = null, target $target = null)
     {
         if (null === $outputFile) {
             $outputDirectory = sys_get_temp_dir() . '/atoum/apiblueprint/';
