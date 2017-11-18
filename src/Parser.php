@@ -21,8 +21,6 @@ class Parser
         $markdownParser = static::getMarkdownParser();
         $this->_walker  = $markdownParser->parse($apib)->walker();
 
-        //while ($event = $this->next()); exit;
-
         return $this->parseNext();
     }
 
@@ -94,8 +92,6 @@ class Parser
             }
         }
 
-        //echo ($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n";
-
         $this->_currentNode       = $event->getNode();
         $this->_currentIsEntering = $event->isEntering();
 
@@ -105,8 +101,6 @@ class Parser
     protected function peek()
     {
         $event = $this->_walker->next();
-
-        //echo '?? ' . ($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n";
 
         $this->_walker->resumeAt($this->_currentNode, $this->_currentIsEntering);
 
