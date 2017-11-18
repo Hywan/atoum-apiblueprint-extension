@@ -30,6 +30,35 @@ class compiler extends test
                 ->function('file_exists')->once();
     }
 
+    public function test_compile_to_an_empty_target()
+    {
+        $self = $this;
+
+        $this
+            ->given(
+                $finder = new LUT\finder(),
+                $finder->getInnerIterator()->append(new \FilesystemIterator(dirname(__DIR__) . '/fixtures/finder/z')),
+
+                $this->mockGenerator->orphanize('__construct'),
+                $outputFile = new \mock\mageekguy\atoum\writers\file(),
+
+                $parser                        = new \mock\atoum\apiblueprint\parser(),
+                $document                      = new LUT\intermediateRepresentation\document(),
+                $this->calling($parser)->parse = $document,
+
+                $target = new \mock\atoum\apiblueprint\target(),
+                $this->calling($target)->compile->doesNothing(),
+
+                $compiler = new SUT()
+            )
+            ->when($result = $compiler->compile($finder, $outputFile, $parser, $target))
+            ->then
+                ->mock($parser)
+                    ->call('parse')->withIdenticalArguments('baz')->once()
+                ->mock($target)
+                    ->call('compile')->withIdenticalArguments($document, $outputFile)->once();
+    }
+
     public function test_get_parser()
     {
         $this

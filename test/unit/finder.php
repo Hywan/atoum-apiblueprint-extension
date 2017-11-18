@@ -32,7 +32,7 @@ class finder extends test
     {
         $this
             ->given(
-                $fixtures = dirname(__DIR__ ) . '/fixtures/finder',
+                $fixtures = dirname(__DIR__) . '/fixtures/finder',
                 $finder = new SUT(),
                 $finder->append(new \FilesystemIterator($fixtures . '/x')),
                 $finder->append(new \FilesystemIterator($fixtures . '/y'))
