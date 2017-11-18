@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint;
 
-class finder extends \CallbackFilterIterator
+class Finder extends \CallbackFilterIterator
 {
     public function __construct()
     {

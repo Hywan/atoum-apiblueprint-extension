@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint\test\unit;
 
-use atoum\apiblueprint\compiler as SUT;
+use atoum\apiblueprint\Compiler as SUT;
 use atoum\apiblueprint as LUT;
 use mageekguy\atoum\test;
 
-class compiler extends test
+class Compiler extends test
 {
     public function test_compile_with_no_output_file()
     {
@@ -25,7 +25,7 @@ class compiler extends test
                     return false;
                 }
             )
-            ->when($result = $compiler->compile(new LUT\finder()))
+            ->when($result = $compiler->compile(new LUT\Finder()))
             ->then
                 ->function('file_exists')->once();
     }
@@ -36,17 +36,17 @@ class compiler extends test
 
         $this
             ->given(
-                $finder = new LUT\finder(),
+                $finder = new LUT\Finder(),
                 $finder->getInnerIterator()->append(new \FilesystemIterator(dirname(__DIR__) . '/fixtures/finder/z')),
 
                 $this->mockGenerator->orphanize('__construct'),
                 $outputFile = new \mock\mageekguy\atoum\writers\file(),
 
-                $parser                        = new \mock\atoum\apiblueprint\parser(),
-                $document                      = new LUT\intermediateRepresentation\document(),
+                $parser                        = new \mock\atoum\apiblueprint\Parser(),
+                $document                      = new LUT\IntermediateRepresentation\Document(),
                 $this->calling($parser)->parse = $document,
 
-                $target = new \mock\atoum\apiblueprint\target(),
+                $target = new \mock\atoum\apiblueprint\Target(),
                 $this->calling($target)->compile->doesNothing(),
 
                 $compiler = new SUT()
@@ -65,7 +65,7 @@ class compiler extends test
             ->when($result = SUT::getParser())
             ->then
                 ->object($result)
-                    ->isInstanceOf(LUT\parser::class)
+                    ->isInstanceOf(LUT\Parser::class)
                     ->isIdenticalTo(SUT::getParser());
     }
 
@@ -75,7 +75,7 @@ class compiler extends test
             ->when($result = SUT::getTarget())
             ->then
                 ->object($result)
-                    ->isInstanceOf(LUT\target::class)
+                    ->isInstanceOf(LUT\Target::class)
                     ->isIdenticalTo(SUT::getTarget());
     }
 }

@@ -6,12 +6,12 @@ namespace atoum\apiblueprint;
 
 use mageekguy\atoum\writers\file;
 
-class compiler
+class Compiler
 {
     protected static $_parser = null;
     protected static $_target = null;
 
-    public function compile(\Traversable $finder, file $outputFile = null, parser $parser = null, target $target = null)
+    public function compile(\Traversable $finder, file $outputFile = null, Parser $parser = null, Target $target = null)
     {
         if (null === $outputFile) {
             $outputDirectory = sys_get_temp_dir() . '/atoum/apiblueprint/';
@@ -40,19 +40,19 @@ class compiler
         }
     }
 
-    public static function getParser(): parser
+    public static function getParser(): Parser
     {
         if (null === static::$_parser) {
-            static::$_parser = new parser();
+            static::$_parser = new Parser();
         }
 
         return static::$_parser;
     }
 
-    public static function getTarget(): target
+    public static function getTarget(): Target
     {
         if (null === static::$_target) {
-            static::$_target = new target();
+            static::$_target = new Target();
         }
 
         return static::$_target;

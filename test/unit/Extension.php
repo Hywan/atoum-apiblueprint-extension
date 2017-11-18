@@ -8,7 +8,7 @@ use atoum\apiblueprint as LUT;
 use atoum\apiblueprint\extension as SUT;
 use mageekguy\atoum\test;
 
-class extension extends test
+class Extension extends test
 {
     public function test_add_to_runner()
     {

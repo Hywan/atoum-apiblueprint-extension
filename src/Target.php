@@ -6,9 +6,9 @@ namespace atoum\apiblueprint;
 
 use mageekguy\atoum\writers\file;
 
-class target
+class Target
 {
-    public function compile(intermediateRepresentation\document $document, file $outputFile)
+    public function compile(IntermediateRepresentation\Document $document, file $outputFile)
     {
     }
 }

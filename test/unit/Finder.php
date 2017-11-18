@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint\test\unit;
 
-use atoum\apiblueprint\finder as SUT;
+use atoum\apiblueprint\Finder as SUT;
 use mageekguy\atoum\test;
 
-class finder extends test
+class Finder extends test
 {
     public function test_type()
     {

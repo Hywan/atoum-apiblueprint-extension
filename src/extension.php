@@ -24,13 +24,13 @@ class extension implements atoum\extension
                 ->addHandler($handler, ['--test-it']);
         }
 
-        $this->_apibFinder = new finder();
+        $this->_apibFinder = new Finder();
     }
 
     public function addToRunner(atoum\runner $runner)
     {
         $runner->addExtension($this);
-        (new compiler())->compile($this->_apibFinder);
+        (new Compiler())->compile($this->_apibFinder);
 
         return $this;
     }
@@ -52,7 +52,7 @@ class extension implements atoum\extension
     /**
      * Return the real finder instance.
      */
-    public function getRawAPIBFinder(): finder
+    public function getRawAPIBFinder(): Finder
     {
         return $this->_apibFinder;
     }

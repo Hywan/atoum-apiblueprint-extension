@@ -18,7 +18,8 @@
         }
     },
     "require": {
-        "atoum/atoum": "^3.2"
+        "atoum/atoum"      : "~3.2",
+        "league/commonmark": "~0.16"
     },
     "minimum-stability": "beta"
 }
