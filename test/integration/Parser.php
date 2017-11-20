@@ -215,7 +215,7 @@ class Parser extends test
                     ->isEqualTo($document);
     }
 
-    public function test_empty_resources_and_grous_at_different_levels()
+    public function test_empty_resources_and_groups_at_different_levels()
     {
         $this
             ->given(
@@ -276,6 +276,27 @@ class Parser extends test
                     $document->groups[]    = $groupB,
                     $document->groups[]    = $groupC,
                     $document->groups[]    = $groupD
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_empty_resource_at_level_2_without_a_parent_group()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  = '## Resource 1 [/resource/1]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $resource1              = new IR\Resource(),
+                    $resource1->name        = 'Resource 1',
+                    $resource1->uriTemplate = '/resource/1',
+
+                    $document = new IR\Document(),
+                    $document->resources[] = $resource1
                 )
                 ->object($result)
                     ->isEqualTo($document);

@@ -180,7 +180,7 @@ class Parser
             $this->_currentResource->name        = trim($match[1]);
             $this->_currentResource->uriTemplate = strtolower(trim($match[2]));
 
-            if (2 === $node->getLevel()) {
+            if (2 === $node->getLevel() && null !== $this->_currentGroup) {
                 $this->_currentGroup->resources[] = $this->_currentResource;
             } else {
                 $this->_currentDocument->resources[] = $this->_currentResource;
