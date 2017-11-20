@@ -6,7 +6,18 @@ namespace atoum\apiblueprint\IntermediateRepresentation;
 
 class Resource
 {
-    public $name   = '';
-    public $method = 'GET';
-    public $url    = '';
+    /**
+     * Resource name.
+     */
+    public $name          = '';
+
+    /**
+     * Request method.
+     */
+    public $requestMethod = 'get';
+
+    /**
+     * URI template.
+     */
+    public $uriTemplate   = '';
 }

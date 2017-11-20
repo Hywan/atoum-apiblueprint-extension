@@ -86,6 +86,8 @@ class Parser
             $node       = $event->getNode();
             $isEntering = $event->isEntering();
 
+            $this->debug('%% state = ' . $this->_state . "\n");
+
             switch (true) {
                 // End of the document.
                 case self::STATE_AFTER_DOCUMENT === $this->_state:
@@ -99,21 +101,16 @@ class Parser
                     break;
 
                 // Entering heading level 1.
-                case self::STATE_ROOT === $this->_state &&
-                     $node instanceof Block\Heading && $isEntering &&
+                case $node instanceof Block\Heading && $isEntering &&
                      1 === $node->getLevel():
                     $this->parseHeader($node);
 
                     break;
 
-                // Leaving heading level 1.
-                case self::STATE_IN_GROUP === $this->_state &&
-                     $node instanceof Block\Heading && !$isEntering &&
-                     1 === $node->getLevel():
-                    $this->_state = self::STATE_ROOT;
-
-                    $this->_currentGroup    = null;
-                    $this->_currentResource = null;
+                // Entering heading level 2.
+                case $node instanceof Block\Heading && $isEntering &&
+                     2 === $node->getLevel():
+                    $this->parseHeader($node);
 
                     break;
             }
@@ -160,24 +157,34 @@ class Parser
 
     protected function parseHeader($node)
     {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
         $headerContent = trim($node->getStringContent()) ?? '';
 
         // Resource group section.
         if (0 !== preg_match('/^Group ([^\[\]\(\)]+)/', $headerContent, $match)) {
-            $this->_state = self::STATE_IN_GROUP;
-
             $this->_currentGroup       = new IR\Group();
             $this->_currentGroup->name = $match[1];
 
             $this->_currentDocument->groups[] = $this->_currentGroup;
+
+            $this->_state           = self::STATE_IN_GROUP;
+            $this->_currentResource = null;
+
         }
         // Resource section.
-        elseif (0 !== $a = preg_match('/^([^\[]+)\[([^\]]+)\]/', $headerContent, $match)) {
-            $this->_currentResource       = new IR\Resource();
-            $this->_currentResource->name = trim($match[1]);
-            $this->_currentResource->url  = trim($match[2]);
+        elseif (0 !== preg_match('/^([^\[]+)\[([^\]]+)\]/', $headerContent, $match)) {
+            $this->_state = self::STATE_IN_RESOURCE;
 
-            $this->_currentDocument->resources[] = $this->_currentResource;
+            $this->_currentResource              = new IR\Resource();
+            $this->_currentResource->name        = trim($match[1]);
+            $this->_currentResource->uriTemplate = strtolower(trim($match[2]));
+
+            if (2 === $node->getLevel()) {
+                $this->_currentGroup->resources[] = $this->_currentResource;
+            } else {
+                $this->_currentDocument->resources[] = $this->_currentResource;
+            }
         }
         // API name.
         else {

@@ -120,9 +120,9 @@ class Parser extends test
             ->when($result = $parser->parse($datum))
             ->then
                 ->let(
-                    $resource       = new IR\Resource(),
-                    $resource->name = 'Foo Bar',
-                    $resource->url  = '/foo/bar',
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Foo Bar',
+                    $resource->uriTemplate = '/foo/bar',
 
                     $document              = new IR\Document(),
                     $document->resources[] = $resource
@@ -141,17 +141,141 @@ class Parser extends test
             ->when($result = $parser->parse($datum))
             ->then
                 ->let(
-                    $resource1       = new IR\Resource(),
-                    $resource1->name = 'Foo Bar',
-                    $resource1->url  = '/foo/bar',
+                    $resource1              = new IR\Resource(),
+                    $resource1->name        = 'Foo Bar',
+                    $resource1->uriTemplate = '/foo/bar',
 
-                    $resource2       = new IR\Resource(),
-                    $resource2->name = 'Baz Qux',
-                    $resource2->url  = '/baz/qux',
+                    $resource2              = new IR\Resource(),
+                    $resource2->name        = 'Baz Qux',
+                    $resource2->uriTemplate = '/baz/qux',
 
                     $document              = new IR\Document(),
                     $document->resources[] = $resource1,
                     $document->resources[] = $resource2
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_one_empty_resource_within_a_group()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  = '# Group A' . "\n" . '## Foo Bar [/foo/bar]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Foo Bar',
+                    $resource->uriTemplate = '/foo/bar',
+
+                    $group              = new IR\Group(),
+                    $group->name        = 'A',
+                    $group->resources[] = $resource,
+
+                    $document           = new IR\Document(),
+                    $document->groups[] = $group
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_many_empty_resources_within_a_group()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Group A' . "\n" .
+                    '## Foo Bar [/foo/bar]' . "\n" .
+                    '## Baz Qux [/baz/qux]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $resource1              = new IR\Resource(),
+                    $resource1->name        = 'Foo Bar',
+                    $resource1->uriTemplate = '/foo/bar',
+
+                    $resource2              = new IR\Resource(),
+                    $resource2->name        = 'Baz Qux',
+                    $resource2->uriTemplate = '/baz/qux',
+
+                    $group              = new IR\Group(),
+                    $group->name        = 'A',
+                    $group->resources[] = $resource1,
+                    $group->resources[] = $resource2,
+
+                    $document           = new IR\Document(),
+                    $document->groups[] = $group
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_empty_resources_and_grous_at_different_levels()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Resource 1 [/resource/1]' . "\n" .
+                    '# Group A' . "\n" .
+                    '## Resource 2 [/group/a/resource/2]' . "\n" .
+                    '## Resource 3 [/group/a/resource/3]' . "\n" .
+                    '# Group B' . "\n" .
+                    '## Resource 4 [/group/b/resource/4]' . "\n" .
+                    '# Group C' . "\n" .
+                    '# Group D' . "\n" .
+                    '## Resource 5 [/group/d/resource/5]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $resource1              = new IR\Resource(),
+                    $resource1->name        = 'Resource 1',
+                    $resource1->uriTemplate = '/resource/1',
+
+                    $resource2              = new IR\Resource(),
+                    $resource2->name        = 'Resource 2',
+                    $resource2->uriTemplate = '/group/a/resource/2',
+
+                    $resource3              = new IR\Resource(),
+                    $resource3->name        = 'Resource 3',
+                    $resource3->uriTemplate = '/group/a/resource/3',
+
+                    $resource4              = new IR\Resource(),
+                    $resource4->name        = 'Resource 4',
+                    $resource4->uriTemplate = '/group/b/resource/4',
+
+                    $resource5              = new IR\Resource(),
+                    $resource5->name        = 'Resource 5',
+                    $resource5->uriTemplate = '/group/d/resource/5',
+
+                    $groupA              = new IR\Group(),
+                    $groupA->name        = 'A',
+                    $groupA->resources[] = $resource2,
+                    $groupA->resources[] = $resource3,
+
+                    $groupB              = new IR\Group(),
+                    $groupB->name        = 'B',
+                    $groupB->resources[] = $resource4,
+
+                    $groupC       = new IR\Group(),
+                    $groupC->name = 'C',
+
+                    $groupD              = new IR\Group(),
+                    $groupD->name        = 'D',
+                    $groupD->resources[] = $resource5,
+
+                    $document              = new IR\Document(),
+                    $document->resources[] = $resource1,
+                    $document->groups[]    = $groupA,
+                    $document->groups[]    = $groupB,
+                    $document->groups[]    = $groupC,
+                    $document->groups[]    = $groupD
                 )
                 ->object($result)
                     ->isEqualTo($document);
