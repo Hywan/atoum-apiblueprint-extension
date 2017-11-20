@@ -11,39 +11,128 @@ use atoum\apiblueprint\IntermediateRepresentation as IR;
 
 class Parser
 {
+    const STATE_BEFORE_DOCUMENT = 0;
+    const STATE_AFTER_DOCUMENT  = 1;
+    const STATE_ROOT            = 2;
+    const STATE_IN_GROUP        = 3;
+    const STATE_IN_RESOURCE     = 4;
+
     protected static $_markdownParser = null;
+    protected $_state                 = null;
     protected $_walker                = null;
+    protected $_currentDocument       = null;
+    protected $_currentGroup          = null;
+    protected $_currentResource       = null;
     protected $_currentNode           = null;
     protected $_currentIsEntering     = false;
 
     public function parse(string $apib): IR\Document
     {
+        $this->_state             = self::STATE_BEFORE_DOCUMENT;
+        $this->_currentDocument   = null;
+        $this->_currentNode       = null;
+        $this->_currentIsEntering = null;
+
         $markdownParser = static::getMarkdownParser();
         $this->_walker  = $markdownParser->parse($apib)->walker();
 
-        return $this->parseNext();
+        //while ($event = $this->next()); exit;
+
+        $this->parseNext();
+
+        return $this->_currentDocument;
+    }
+
+    protected function next(bool $expectEOF = false)
+    {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
+        $event = $this->_walker->next();
+
+        if (null === $event) {
+            if (false === $expectEOF) {
+                throw new Exception\ParserEOF('End of the document has been reached unexpectedly.');
+            } else {
+                return null;
+            }
+        }
+
+        $this->debug(($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n");
+
+        $this->_currentNode       = $event->getNode();
+        $this->_currentIsEntering = $event->isEntering();
+
+        return $event;
+    }
+
+    protected function peek()
+    {
+        $event = $this->_walker->next();
+
+        $this->debug('?? ' . ($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n");
+        $this->debug('<< ' . ($this->_currentIsEntering ? 'Entering' : 'Leaving') . ' a ' . get_class($this->_currentNode) . ' node' . "\n");
+
+        $this->_walker->resumeAt($this->_currentNode, $this->_currentIsEntering);
+        $this->_walker->next(); // move to the state of the current node.
+
+        return $event;
     }
 
     protected function parseNext()
     {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
         while ($event = $this->next(true)) {
             $node       = $event->getNode();
             $isEntering = $event->isEntering();
 
             switch (true) {
-                case $node instanceof Block\Document && $isEntering:
-                    return $this->parseDocument(new IR\Document(), $node);
+                // End of the document.
+                case self::STATE_AFTER_DOCUMENT === $this->_state:
+                    return;
+
+                // Beginning of the document.
+                case self::STATE_BEFORE_DOCUMENT === $this->_state &&
+                     $node instanceof Block\Document && $isEntering:
+                    $this->parseDocument($node);
+
+                    break;
+
+                // Entering heading level 1.
+                case self::STATE_ROOT === $this->_state &&
+                     $node instanceof Block\Heading && $isEntering &&
+                     1 === $node->getLevel():
+                    $this->parseHeader($node);
+
+                    break;
+
+                // Leaving heading level 1.
+                case self::STATE_IN_GROUP === $this->_state &&
+                     $node instanceof Block\Heading && !$isEntering &&
+                     1 === $node->getLevel():
+                    $this->_state = self::STATE_ROOT;
+
+                    $this->_currentGroup    = null;
+                    $this->_currentResource = null;
+
+                    break;
             }
         }
     }
 
-    protected function parseDocument(IR\Document $document, $node): IR\Document
+    protected function parseDocument($node)
     {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
+        $this->_currentDocument = new IR\Document();
+
         $event = $this->peek();
 
         // The document is empty.
         if ($event->getNode() instanceof Block\Document && false === $event->isEntering()) {
-            return $document;
+            $this->_state = self::STATE_AFTER_DOCUMENT;
+
+            return;
         }
 
         // The document might have metadata.
@@ -59,14 +148,41 @@ class Parser
 
                 if ($event->getNode() instanceof Inline\Text &&
                     0 !== preg_match('/^([^:]+):(.*)$/', $event->getNode()->getContent(), $match)) {
-                    $document->metadata[mb_strtolower(trim($match[1]))] = trim($match[2]);
+                    $this->_currentDocument->metadata[mb_strtolower(trim($match[1]))] = trim($match[2]);
                 }
             } while(true);
         }
 
-        $this->parseNext();
+        $this->_state = self::STATE_ROOT;
 
-        return $document;
+        return;
+    }
+
+    protected function parseHeader($node)
+    {
+        $headerContent = trim($node->getStringContent()) ?? '';
+
+        // Resource group section.
+        if (0 !== preg_match('/^Group ([^\[\]\(\)]+)/', $headerContent, $match)) {
+            $this->_state = self::STATE_IN_GROUP;
+
+            $this->_currentGroup       = new IR\Group();
+            $this->_currentGroup->name = $match[1];
+
+            $this->_currentDocument->groups[] = $this->_currentGroup;
+        }
+        // Resource section.
+        elseif (0 !== $a = preg_match('/^([^\[]+)\[([^\]]+)\]/', $headerContent, $match)) {
+            $this->_currentResource       = new IR\Resource();
+            $this->_currentResource->name = trim($match[1]);
+            $this->_currentResource->url  = trim($match[2]);
+
+            $this->_currentDocument->resources[] = $this->_currentResource;
+        }
+        // API name.
+        else {
+            $this->_currentDocument->apiName = $headerContent;
+        }
     }
 
     protected function getMarkdownParser()
@@ -80,30 +196,8 @@ class Parser
         return static::$_markdownParser;
     }
 
-    protected function next(bool $expectEOF = false)
+    private function debug(string $message)
     {
-        $event = $this->_walker->next();
-
-        if (null === $event) {
-            if (false === $expectEOF) {
-                throw new Exception\ParserEOF('End of the document has been reached unexpectedly.');
-            } else {
-                return null;
-            }
-        }
-
-        $this->_currentNode       = $event->getNode();
-        $this->_currentIsEntering = $event->isEntering();
-
-        return $event;
-    }
-
-    protected function peek()
-    {
-        $event = $this->_walker->next();
-
-        $this->_walker->resumeAt($this->_currentNode, $this->_currentIsEntering);
-
-        return $event;
+        //echo $message;
     }
 }
