@@ -229,7 +229,10 @@ class Parser extends test
                     '## Resource 4 [/group/b/resource/4]' . "\n" .
                     '# Group C' . "\n" .
                     '# Group D' . "\n" .
-                    '## Resource 5 [/group/d/resource/5]'
+                    '## Resource 5 [/group/d/resource/5]' . "\n" .
+                    '# Resource 6 [/resource/6]' . "\n" .
+                    '# Group E' . "\n" .
+                    '# Resource 7 [/resource/7]'
             )
             ->when($result = $parser->parse($datum))
             ->then
@@ -254,6 +257,14 @@ class Parser extends test
                     $resource5->name        = 'Resource 5',
                     $resource5->uriTemplate = '/group/d/resource/5',
 
+                    $resource6              = new IR\Resource(),
+                    $resource6->name        = 'Resource 6',
+                    $resource6->uriTemplate = '/resource/6',
+
+                    $resource7              = new IR\Resource(),
+                    $resource7->name        = 'Resource 7',
+                    $resource7->uriTemplate = '/resource/7',
+
                     $groupA              = new IR\Group(),
                     $groupA->name        = 'A',
                     $groupA->resources[] = $resource2,
@@ -270,12 +281,18 @@ class Parser extends test
                     $groupD->name        = 'D',
                     $groupD->resources[] = $resource5,
 
+                    $groupE       = new IR\Group(),
+                    $groupE->name = 'E',
+
                     $document              = new IR\Document(),
                     $document->resources[] = $resource1,
+                    $document->resources[] = $resource6,
+                    $document->resources[] = $resource7,
                     $document->groups[]    = $groupA,
                     $document->groups[]    = $groupB,
                     $document->groups[]    = $groupC,
-                    $document->groups[]    = $groupD
+                    $document->groups[]    = $groupD,
+                    $document->groups[]    = $groupE
                 )
                 ->object($result)
                     ->isEqualTo($document);
@@ -290,15 +307,7 @@ class Parser extends test
             )
             ->when($result = $parser->parse($datum))
             ->then
-                ->let(
-                    $resource1              = new IR\Resource(),
-                    $resource1->name        = 'Resource 1',
-                    $resource1->uriTemplate = '/resource/1',
-
-                    $document = new IR\Document(),
-                    $document->resources[] = $resource1
-                )
                 ->object($result)
-                    ->isEqualTo($document);
+                    ->isEqualTo(new IR\Document());
     }
 }
