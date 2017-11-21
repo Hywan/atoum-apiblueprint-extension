@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint\IntermediateRepresentation;
 
-class Resource
+class Action
 {
     /**
-     * Resource name.
+     * Action name.
      */
     public $name          = '';
 
@@ -21,10 +21,5 @@ class Resource
      */
     public $uriTemplate   = '';
 
-    /**
-     * Actions.
-     *
-     * See https://github.com/apiaryio/api-blueprint/blob/master/API%20Blueprint%20Specification.md#def-action-section.
-     */
-    public $actions       = [];
+    public $messages = [];
 }

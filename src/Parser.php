@@ -17,7 +17,14 @@ class Parser
 
     const HEADER_GROUP    = 0;
     const HEADER_RESOURCE = 1;
-    const HEADER_UNKNOWN  = 2;
+    const HEADER_ACTION   = 2;
+    const HEADER_UNKNOWN  = 3;
+
+    const ACTION_REQUEST    = 0;
+    const ACTION_RESPONSE   = 1;
+    const ACTION_PARAMETERS = 2;
+    const ACTION_ATTRIBUTES = 3;
+    const ACTION_UNKNOWN    = 4;
 
     protected static $_markdownParser = null;
     protected $_state                 = null;
@@ -149,27 +156,11 @@ class Parser
         return;
     }
 
-    protected function getHeaderType(string $headerContent, &$matches = []): int
-    {
-        // Resource group section.
-        if (0 !== preg_match('/^Group ([^\[\]\(\)]+)/', $headerContent, $matches)) {
-            return self::HEADER_GROUP;
-        }
-
-        // Resource section.
-        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<uriTemplate>[^\]]+)\]/', $headerContent, $matches)) {
-            return self::HEADER_RESOURCE;
-        }
-
-        // API name.
-        return self::HEADER_UNKNOWN;
-    }
-
     protected function parseDescriptionOrGroupOrResource(Block\Heading $node)
     {
         $this->debug('>> ' . __FUNCTION__ . "\n");
 
-        $headerContent = trim($node->getStringContent()) ?? '';
+        $headerContent = $this->getHeaderContent($node);
 
         switch ($this->getHeaderType($headerContent, $matches)) {
             case self::HEADER_GROUP:
@@ -191,14 +182,14 @@ class Parser
 
                         $this->next();
 
-                        $nextHeaderContent = trim($nextNode->getStringContent()) ?? '';
+                        $nextHeaderContent = $this->getHeaderContent($nextNode);
 
                         if (self::HEADER_RESOURCE === $this->getHeaderType($nextHeaderContent, $nextMatches)) {
                             $this->parseResource(
                                 $nextNode,
                                 $group,
-                                $nextMatches['name'],
-                                $nextMatches['uriTemplate']
+                                $nextMatches['name'] ?? '',
+                                $nextMatches['uriTemplate'] ?? ''
                             );
                         }
                     } else {
@@ -227,13 +218,139 @@ class Parser
         }
     }
 
-    protected function parseResource(Block\Heading $resourceNode, $parent, string $name, string $uriTemplate)
+    protected function parseResource(Block\Heading $node, $parent, string $name, string $uriTemplate)
     {
         $resource              = new IR\Resource();
         $resource->name        = trim($name);
         $resource->uriTemplate = strtolower(trim($uriTemplate));
 
         $parent->resources[] = $resource;
+
+        $level = $node->getLevel();
+
+        while ($event = $this->peek()) {
+            $nextNode   = $event->getNode();
+            $isEntering = $event->isEntering();
+
+            if ($nextNode instanceof Block\Heading && $isEntering) {
+                if ($nextNode->getLevel() <= $level) {
+                    return;
+                }
+
+                $this->next();
+
+                $nextHeaderContent = $this->getHeaderContent($nextNode);
+
+                if (self::HEADER_ACTION === $this->getHeaderType($nextHeaderContent, $headerMatches)) {
+                    $this->parseAction(
+                        $nextNode,
+                        $resource,
+                        $headerMatches['name'] ?? '',
+                        $headerMatches['requestMethod'] ?? '',
+                        $headerMatches['uriTemplate'] ?? ''
+                    );
+                }
+            } else {
+                $this->next();
+            }
+        }
+    }
+
+    protected function parseAction(
+        Block\Heading $node,
+        IR\Resource $resource,
+        string $name,
+        string $requestMethod,
+        string $uriTemplate
+    ) {
+        $action                = new IR\Action();
+        $action->name          = trim($name);
+        $action->requestMethod = strtoupper(trim($requestMethod));
+        $action->uriTemplate   = strtolower(trim($uriTemplate));
+
+        $resource->actions[] = $action;
+
+        while ($event = $this->peek()) {
+            $nextNode   = $event->getNode();
+            $isEntering = $event->isEntering();
+
+            if ($nextNode instanceof Block\Heading && $isEntering) {
+                return;
+            }
+
+            $this->next();
+
+            if ($nextNode instanceof Block\ListBlock && $isEntering) {
+                var_dump('there');
+                while($event = $this->peek()) {
+                    $nextNodeInListBlock = $event->getNode();
+                    $isEntering  = $event->isEntering();
+
+                    var_dump('heree');
+
+                    if ($nextNodeInListBlock instanceof Block\ListBlock && !$isEntering) {
+                        return;
+                    }
+
+                    $this->next();
+
+                    if ($nextNodeInListBlock instanceof Block\ListItem && $isEntering) {
+                        $event = $this->peek();
+
+                        $nextNodeInListItem = $event->getNode();
+                        $isEntering         = $event->isEntering();
+
+                        if ($event->getNode() instanceof Block\Paragraph && $isEntering) {
+                            $actionContent = trim($nextNodeInListItem->getStringContent());
+
+                            switch ($this->getActionType($actionContent, $actionMatches)) {
+                                case self::ACTION_REQUEST:
+                                    $request = new IR\Action\Request();
+
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected function getHeaderType(string $headerContent, &$matches = []): int
+    {
+        // Resource group section.
+        if (0 !== preg_match('/^Group\h+([^\[\]\(\)]+)/', $headerContent, $matches)) {
+            return self::HEADER_GROUP;
+        }
+
+        // Resource section.
+        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<uriTemplate>\/[^\]]+)\]/', $headerContent, $matches)) {
+            return self::HEADER_RESOURCE;
+        }
+
+        // Action section.
+        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<requestMethod>[A-Z]+(?:\h+(?<uriTemplate>\/[^\]]+))?)\]/', $headerContent, $matches)) {
+            return self::HEADER_ACTION;
+        }
+
+        // API name.
+        return self::HEADER_UNKNOWN;
+    }
+
+    protected function getHeaderContent(Block\Heading $node): string
+    {
+        return trim($node->getStringContent() ?? '');
+    }
+
+    protected function getActionType(string $actionContent, &$matches = []): int
+    {
+        // Request.
+        if (0 !== preg_match('^Request(?<name>\h+[^\(]+)?(?<mediaType>\h+\([^\)]+\))?/', $actionContent, $matches)) {
+            return self::ACTION_REQUEST;
+        }
+
+        // Unknown.
+        return self::ACTION_UNKNOWN;
     }
 
     protected function getMarkdownParser()

@@ -13,6 +13,7 @@ use mageekguy\atoum\test;
 
 class Parser extends test
 {
+    /*
     public function test_empty_document()
     {
         $this
@@ -309,5 +310,135 @@ class Parser extends test
             ->then
                 ->object($result)
                     ->isEqualTo(new IR\Document());
+    }
+
+    public function test_one_empty_action_in_a_resource_in_a_group()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Group A' . "\n" .
+                    '## Resource 1 [/group/a/resource/1]' . "\n" .
+                    '### Action Foo Bar [GET]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $action                = new IR\Action(),
+                    $action->name          = 'Action Foo Bar',
+                    $action->requestMethod = 'GET',
+
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Resource 1',
+                    $resource->uriTemplate = '/group/a/resource/1',
+                    $resource->actions[]   = $action,
+
+                    $group              = new IR\Group(),
+                    $group->name        = 'A',
+                    $group->resources[] = $resource,
+
+                    $document           = new IR\Document(),
+                    $document->groups[] = $group
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_one_empty_action_in_a_resource()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Resource 1 [/group/a/resource/1]' . "\n" .
+                    '## Action Foo Bar [GET]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $action                = new IR\Action(),
+                    $action->name          = 'Action Foo Bar',
+                    $action->requestMethod = 'GET',
+
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Resource 1',
+                    $resource->uriTemplate = '/group/a/resource/1',
+                    $resource->actions[]   = $action,
+
+                    $document              = new IR\Document(),
+                    $document->resources[] = $resource
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_many_empty_actions_in_a_resource_in_a_group()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Group A' . "\n" .
+                    '## Resource 1 [/group/a/resource/1]' . "\n" .
+                    '### Action Foo Bar [GET]' . "\n" .
+                    '### Action Baz Qux [HELLO]'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $action1                = new IR\Action(),
+                    $action1->name          = 'Action Foo Bar',
+                    $action1->requestMethod = 'GET',
+
+                    $action2                = new IR\Action(),
+                    $action2->name          = 'Action Baz Qux',
+                    $action2->requestMethod = 'HELLO',
+
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Resource 1',
+                    $resource->uriTemplate = '/group/a/resource/1',
+                    $resource->actions[]   = $action1,
+                    $resource->actions[]   = $action2,
+
+                    $group              = new IR\Group(),
+                    $group->name        = 'A',
+                    $group->resources[] = $resource,
+
+                    $document           = new IR\Document(),
+                    $document->groups[] = $group
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+    */
+
+    public function test_one_complete_action_in_a_resource()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Resource 1 [/group/a/resource/1]' . "\n" .
+                    '## Action Foo Bar [GET]' . "\n" .
+                    '+ Request A (media/type)'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $action                = new IR\Action(),
+                    $action->name          = 'Action Foo Bar',
+                    $action->requestMethod = 'GET',
+
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Resource 1',
+                    $resource->uriTemplate = '/group/a/resource/1',
+                    $resource->actions[]   = $action,
+
+                    $document              = new IR\Document(),
+                    $document->resources[] = $resource
+                )
+                ->object($result)
+                    ->isEqualTo($document);
     }
 }
