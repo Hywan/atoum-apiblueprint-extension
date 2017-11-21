@@ -14,8 +14,6 @@ class Parser
     const STATE_BEFORE_DOCUMENT = 0;
     const STATE_AFTER_DOCUMENT  = 1;
     const STATE_ROOT            = 2;
-    const STATE_IN_GROUP        = 3;
-    const STATE_IN_RESOURCE     = 4;
 
     const HEADER_GROUP    = 0;
     const HEADER_RESOURCE = 1;
@@ -175,8 +173,6 @@ class Parser
 
         switch ($this->getHeaderType($headerContent, $matches)) {
             case self::HEADER_GROUP:
-                $this->_state = self::STATE_IN_GROUP;
-
                 $group       = new IR\Group();
                 $group->name = $matches[1];
 
@@ -233,8 +229,6 @@ class Parser
 
     protected function parseResource(Block\Heading $resourceNode, $parent, string $name, string $uriTemplate)
     {
-        $this->_state = self::STATE_IN_RESOURCE;
-
         $resource              = new IR\Resource();
         $resource->name        = trim($name);
         $resource->uriTemplate = strtolower(trim($uriTemplate));
