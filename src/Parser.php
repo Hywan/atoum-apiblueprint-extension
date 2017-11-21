@@ -17,12 +17,14 @@ class Parser
     const STATE_IN_GROUP        = 3;
     const STATE_IN_RESOURCE     = 4;
 
+    const HEADER_GROUP    = 0;
+    const HEADER_RESOURCE = 1;
+    const HEADER_UNKNOWN  = 2;
+
     protected static $_markdownParser = null;
     protected $_state                 = null;
     protected $_walker                = null;
     protected $_currentDocument       = null;
-    protected $_currentGroup          = null;
-    protected $_currentResource       = null;
     protected $_currentNode           = null;
     protected $_currentIsEntering     = false;
 
@@ -38,7 +40,7 @@ class Parser
 
         //while ($event = $this->next()); exit;
 
-        $this->parseNext();
+        $this->parseStructure();
 
         return $this->_currentDocument;
     }
@@ -69,7 +71,12 @@ class Parser
     {
         $event = $this->_walker->next();
 
-        $this->debug('?? ' . ($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n");
+        if (null !== $event) {
+            $this->debug('?? ' . ($event->isEntering() ? 'Entering' : 'Leaving') . ' a ' . get_class($event->getNode()) . ' node' . "\n");
+        } else {
+            $this->debug('?? null');
+        }
+
         $this->debug('<< ' . ($this->_currentIsEntering ? 'Entering' : 'Leaving') . ' a ' . get_class($this->_currentNode) . ' node' . "\n");
 
         $this->_walker->resumeAt($this->_currentNode, $this->_currentIsEntering);
@@ -78,7 +85,7 @@ class Parser
         return $event;
     }
 
-    protected function parseNext()
+    protected function parseStructure()
     {
         $this->debug('>> ' . __FUNCTION__ . "\n");
 
@@ -88,31 +95,20 @@ class Parser
 
             $this->debug('%% state = ' . $this->_state . "\n");
 
-            switch (true) {
-                // End of the document.
-                case self::STATE_AFTER_DOCUMENT === $this->_state:
-                    return;
-
-                // Beginning of the document.
-                case self::STATE_BEFORE_DOCUMENT === $this->_state &&
-                     $node instanceof Block\Document && $isEntering:
-                    $this->parseDocument($node);
-
-                    break;
-
-                // Entering heading level 1.
-                case $node instanceof Block\Heading && $isEntering &&
-                     1 === $node->getLevel():
-                    $this->parseHeader($node);
-
-                    break;
-
-                // Entering heading level 2.
-                case $node instanceof Block\Heading && $isEntering &&
-                     2 === $node->getLevel():
-                    $this->parseHeader($node);
-
-                    break;
+            // End of the document.
+            if (self::STATE_AFTER_DOCUMENT === $this->_state) {
+                return;
+            }
+            // Beginning of the document.
+            elseif (self::STATE_BEFORE_DOCUMENT === $this->_state &&
+                $node instanceof Block\Document && $isEntering) {
+                $this->parseDocument($node);
+            }
+            // Entering heading level 1: Either group section, resource
+            // section, or a document description.
+            elseif ($node instanceof Block\Heading && $isEntering &&
+                    1 === $node->getLevel()) {
+                $this->parseDescriptionOrGroupOrResource($node);
             }
         }
     }
@@ -155,41 +151,95 @@ class Parser
         return;
     }
 
-    protected function parseHeader($node)
+    protected function getHeaderType(string $headerContent, &$matches = []): int
+    {
+        // Resource group section.
+        if (0 !== preg_match('/^Group ([^\[\]\(\)]+)/', $headerContent, $matches)) {
+            return self::HEADER_GROUP;
+        }
+
+        // Resource section.
+        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<uriTemplate>[^\]]+)\]/', $headerContent, $matches)) {
+            return self::HEADER_RESOURCE;
+        }
+
+        // API name.
+        return self::HEADER_UNKNOWN;
+    }
+
+    protected function parseDescriptionOrGroupOrResource(Block\Heading $node)
     {
         $this->debug('>> ' . __FUNCTION__ . "\n");
 
         $headerContent = trim($node->getStringContent()) ?? '';
 
-        // Resource group section.
-        if (0 !== preg_match('/^Group ([^\[\]\(\)]+)/', $headerContent, $match)) {
-            $this->_currentGroup       = new IR\Group();
-            $this->_currentGroup->name = $match[1];
+        switch ($this->getHeaderType($headerContent, $matches)) {
+            case self::HEADER_GROUP:
+                $this->_state = self::STATE_IN_GROUP;
 
-            $this->_currentDocument->groups[] = $this->_currentGroup;
+                $group       = new IR\Group();
+                $group->name = $matches[1];
 
-            $this->_state           = self::STATE_IN_GROUP;
-            $this->_currentResource = null;
+                $this->_currentDocument->groups[] = $group;
 
+                $level = $node->getLevel();
+
+                while ($event = $this->peek()) {
+                    $nextNode   = $event->getNode();
+                    $isEntering = $event->isEntering();
+
+                    if ($nextNode instanceof Block\Heading && $isEntering) {
+                        if ($nextNode->getLevel() <= $level) {
+                            return;
+                        }
+
+                        $this->next();
+
+                        $nextHeaderContent = trim($nextNode->getStringContent()) ?? '';
+
+                        if (self::HEADER_RESOURCE === $this->getHeaderType($nextHeaderContent, $nextMatches)) {
+                            $this->parseResource(
+                                $nextNode,
+                                $group,
+                                $nextMatches['name'],
+                                $nextMatches['uriTemplate']
+                            );
+                        }
+                    } else {
+                        $this->next();
+                    }
+                }
+
+                break;
+
+            case self::HEADER_RESOURCE:
+                $this->parseResource(
+                    $node,
+                    $this->_currentDocument,
+                    $matches['name'],
+                    $matches['uriTemplate']
+                );
+
+                break;
+
+            case self::HEADER_UNKNOWN:
+                if (empty($this->_currentDocument->apiName)) {
+                    $this->_currentDocument->apiName = $headerContent;
+                }
+
+                break;
         }
-        // Resource section.
-        elseif (0 !== preg_match('/^([^\[]+)\[([^\]]+)\]/', $headerContent, $match)) {
-            $this->_state = self::STATE_IN_RESOURCE;
+    }
 
-            $this->_currentResource              = new IR\Resource();
-            $this->_currentResource->name        = trim($match[1]);
-            $this->_currentResource->uriTemplate = strtolower(trim($match[2]));
+    protected function parseResource(Block\Heading $resourceNode, $parent, string $name, string $uriTemplate)
+    {
+        $this->_state = self::STATE_IN_RESOURCE;
 
-            if (2 === $node->getLevel() && null !== $this->_currentGroup) {
-                $this->_currentGroup->resources[] = $this->_currentResource;
-            } else {
-                $this->_currentDocument->resources[] = $this->_currentResource;
-            }
-        }
-        // API name.
-        else {
-            $this->_currentDocument->apiName = $headerContent;
-        }
+        $resource              = new IR\Resource();
+        $resource->name        = trim($name);
+        $resource->uriTemplate = strtolower(trim($uriTemplate));
+
+        $parent->resources[] = $resource;
     }
 
     protected function getMarkdownParser()
