@@ -26,6 +26,12 @@ class Parser
     const ACTION_ATTRIBUTES = 3;
     const ACTION_UNKNOWN    = 4;
 
+    const PAYLOAD_BODY       = 0;
+    const PAYLOAD_HEADERS    = 1;
+    const PAYLOAD_ATTRIBUTES = 2;
+    const PAYLOAD_SCHEMA     = 3;
+    const PAYLOAD_UNKNOWN    = 4;
+
     protected static $_markdownParser = null;
     protected $_state                 = null;
     protected $_walker                = null;
@@ -287,7 +293,7 @@ class Parser
             if ($nextNode instanceof Block\ListBlock && $isEntering) {
                 while($event = $this->peek()) {
                     $nextNodeInListBlock = $event->getNode();
-                    $isEntering  = $event->isEntering();
+                    $isEntering          = $event->isEntering();
 
                     if ($nextNodeInListBlock instanceof Block\ListBlock && !$isEntering) {
                         return;
@@ -325,7 +331,7 @@ class Parser
                                     $payloadIsEntering = $event->isEntering();
 
                                     if (($payloadNode instanceof Block\Paragraph && $payloadIsEntering) ||
-                                        ($payloadNode instanceof Blog\ListBlock && $payloadIsEntering)) {
+                                        ($payloadNode instanceof Block\ListBlock && $payloadIsEntering)) {
                                         $this->next();
                                         $this->parsePayload($payloadNode, $request);
                                     }
@@ -380,7 +386,92 @@ class Parser
                 !($event->getNode() instanceof Block\Paragraph && false === $event->isEntering())
             );
         } elseif ($node instanceof Block\ListBlock) {
-            throw new \RuntimeException('damn');
+            $payload                    = new IR\Payload();
+            $requestOrResponse->payload = $payload;
+
+            while($event = $this->peek()) {
+                $nextNodeInListBlock = $event->getNode();
+                $isEntering          = $event->isEntering();
+
+                if ($nextNodeInListBlock instanceof Block\ListBlock && !$isEntering) {
+                    return;
+                }
+
+                $this->next();
+
+                if ($nextNodeInListBlock instanceof Block\ListItem && $isEntering) {
+                    $event = $this->peek();
+
+                    $nextNodeInListItem = $event->getNode();
+                    $isEntering         = $event->isEntering();
+
+                    if ($nextNodeInListItem instanceof Block\Paragraph && $isEntering) {
+                        $this->next();
+
+                        // Move to the end of the paragraph.
+                        while(
+                            (($event = $this->next()) ?? false) &&
+                            !($event->getNode() instanceof Block\Paragraph && false === $event->isEntering())
+                        );
+
+                        $payloadContent = trim($nextNodeInListItem->getStringContent());
+
+                        switch ($this->getPayloadType($payloadContent, $payloadMatches)) {
+                            case self::PAYLOAD_BODY:
+                                $event          = $this->peek();
+                                $bodyNode       = $event->getNode();
+                                $bodyIsEntering = $event->isEntering();
+
+                                if ($bodyNode instanceof Block\Paragraph && $bodyIsEntering) {
+                                    $this->next();
+
+                                    $payload->body = $bodyNode->getStringContent();
+                                }
+
+                                break;
+
+                            case self::PAYLOAD_HEADERS:
+                                $event             = $this->peek();
+                                $headersNode       = $event->getNode();
+                                $headersIsEntering = $event->isEntering();
+
+                                if ($headersNode instanceof Block\Paragraph && $headersIsEntering) {
+                                    $this->next();
+
+                                    foreach (preg_split('/\v+/', $headersNode->getStringContent()) as $line) {
+                                        if (false === $pos = strpos($line, ':')) {
+                                            continue;
+                                        }
+
+                                        $payload->headers[
+                                            trim(substr($line, 0, $pos))
+                                        ] = trim(substr($line, $pos + 1));
+                                    }
+                                }
+
+                                break;
+
+                            case self::PAYLOAD_ATTRIBUTES:
+                                throw new \RuntimeException('Payload Attributes are not implemented yet.');
+
+                                break;
+
+                            case self::PAYLOAD_SCHEMA:
+                                $event            = $this->peek();
+                                $schemaNode       = $event->getNode();
+                                $schemaIsEntering = $event->isEntering();
+
+                                if ($schemaNode instanceof Block\Paragraph && $schemaIsEntering) {
+                                    $this->next();
+
+                                    $payload->schema = $schemaNode->getStringContent();
+                                }
+
+                                break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -424,6 +515,32 @@ class Parser
 
         // Unknown.
         return self::ACTION_UNKNOWN;
+    }
+
+    protected function getPayloadType(string $payloadContent, &$matches = []): int
+    {
+        // Body.
+        if (0 !== preg_match('/^Body/', $payloadContent, $matches)) {
+            return self::PAYLOAD_BODY;
+        }
+
+        // Headers.
+        if (0 !== preg_match('/^Headers/', $payloadContent, $matches)) {
+            return self::PAYLOAD_HEADERS;
+        }
+
+        // Attributes.
+        if (0 !== preg_match('/^Attributes(?:\h+\((?<typeDefinition>[^\)]+)\))?/', $payloadContent, $matches)) {
+            return self::PAYLOAD_ATTRIBUTES;
+        }
+
+        // Schema.
+        if (0 !== preg_match('/^Schema/', $payloadContent, $matches)) {
+            return self::PAYLOAD_SCHEMA;
+        }
+
+        // Unknown.
+        return self::PAYLOAD_UNKNOWN;
     }
 
     protected function getMarkdownParser()

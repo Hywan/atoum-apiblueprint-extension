@@ -483,9 +483,12 @@ class Parser extends test
                     '# Resource 1 [/group/a/resource/1]' . "\n" .
                     '## Action Foo Bar [GET]' . "\n" .
                     '+ Request A (media/type1)' . "\n\n" .
+
                     '     body1 part1' . "\n" .
                     '     body1 part2' . "\n\n" .
+
                     '+ Response 123 (media/type2)' . "\n\n" .
+
                     '    body2'
             )
             ->when($result = $parser->parse($datum))
@@ -512,6 +515,80 @@ class Parser extends test
                     $action->requestMethod = 'GET',
                     $action->messages[]    = $request,
                     $action->messages[]    = $response,
+
+                    $resource              = new IR\Resource(),
+                    $resource->name        = 'Resource 1',
+                    $resource->uriTemplate = '/group/a/resource/1',
+                    $resource->actions[]   = $action,
+
+                    $document              = new IR\Document(),
+                    $document->resources[] = $resource
+                )
+                ->object($result)
+                    ->isEqualTo($document);
+    }
+
+    public function test_one_action_with_payloads_in_a_resource()
+    {
+        $this
+            ->given(
+                $parser = new SUT(),
+                $datum  =
+                    '# Resource 1 [/group/a/resource/1]' . "\n" .
+                    '## Action Foo Bar [GET]' . "\n" .
+                    '+ Request A (media/type1)' . "\n\n" .
+
+                    '  + Body' . "\n\n" .
+
+                    '    {"message": ' . "\n" .
+                    '     "Hello, World!"}' . "\n\n" .
+
+                    '  + Headers' . "\n\n" .
+
+                    '    Foo: Bar' . "\n" .
+                    '    Bar: Qux' . "\n\n" .
+
+                    '  + Schema' . "\n\n" .
+
+                    '    {' . "\n" .
+                    '        "$schema": "http://json-schema.org/draft-04/schema#",' . "\n" .
+                    '        "type": "object",' . "\n" .
+                    '        "properties": {' . "\n" .
+                    '            "message": {' . "\n" .
+                    '                "type": "string"' . "\n" .
+                    '            }' . "\n" .
+                    '        }' . "\n" .
+                    '    }'
+            )
+            ->when($result = $parser->parse($datum))
+            ->then
+                ->let(
+                    $payload          = new IR\Payload(),
+                    $payload->body    = '{"message": ' . "\n" . '"Hello, World!"}',
+                    $payload->headers = [
+                        'Foo' => 'Bar',
+                        'Bar' => 'Qux'
+                    ],
+                    $payload->schema =
+                        '{' . "\n" .
+                        '"$schema": "http://json-schema.org/draft-04/schema#",' . "\n" .
+                        '"type": "object",' . "\n" .
+                        '"properties": {' . "\n" .
+                        '"message": {' . "\n" .
+                        '"type": "string"' . "\n" .
+                        '}' . "\n" .
+                        '}' . "\n" .
+                        '}',
+
+                    $request            = new IR\Request(),
+                    $request->name      = 'A',
+                    $request->mediaType = 'media/type1',
+                    $request->payload   = $payload,
+
+                    $action                = new IR\Action(),
+                    $action->name          = 'Action Foo Bar',
+                    $action->requestMethod = 'GET',
+                    $action->messages[]    = $request,
 
                     $resource              = new IR\Resource(),
                     $resource->name        = 'Resource 1',
