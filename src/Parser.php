@@ -254,7 +254,7 @@ class Parser
                         $nextNode,
                         $resource,
                         $headerMatches['name'] ?? '',
-                        $headerMatches['requestMethod'] ?? '',
+                        $headerMatches['requestMethod1'] ?? $headerMatches['requestMethod2'] ?? '',
                         $headerMatches['uriTemplate'] ?? ''
                     );
                 }
@@ -501,7 +501,11 @@ class Parser
         }
 
         // Action section.
-        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<requestMethod>[A-Z]+(?:\h+(?<uriTemplate>\/[^\]]+))?)\]/', $headerContent, $matches)) {
+        if (0 !== preg_match('/(?:^(?<requestMethod1>[A-Z]+)$)|(?:^(?<name>[^\[]+)\[(?<requestMethod2>[A-Z]+)(?:\h+(?<uriTemplate>\/[^\]]+))?\])/', $headerContent, $matches)) {
+            if (empty($matches['requestMethod1'])) {
+                $matches['requestMethod1'] = null;
+            }
+
             return self::HEADER_ACTION;
         }
 
