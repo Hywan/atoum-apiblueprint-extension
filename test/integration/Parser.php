@@ -483,7 +483,8 @@ class Parser extends test
                     '# Resource 1 [/group/a/resource/1]' . "\n" .
                     '## Action Foo Bar [GET]' . "\n" .
                     '+ Request A (media/type1)' . "\n\n" .
-                    '     body1' . "\n\n" .
+                    '     body1 part1' . "\n" .
+                    '     body1 part2' . "\n\n" .
                     '+ Response 123 (media/type2)' . "\n\n" .
                     '    body2'
             )
@@ -491,7 +492,7 @@ class Parser extends test
             ->then
                 ->let(
                     $payload1       = new IR\Payload(),
-                    $payload1->body = 'body1',
+                    $payload1->body = 'body1 part1' . "\n" . 'body1 part2',
 
                     $payload2       = new IR\Payload(),
                     $payload2->body = 'body2',
