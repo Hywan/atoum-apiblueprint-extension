@@ -1,3 +1,3 @@
 <?php
 
-mageekguy\atoum\test::setNamespace('#\\\test\\\(unit|integration)\\\#i');
+mageekguy\atoum\test::setNamespace('#\\\test\\\(unit|integration|system)\\\#i');

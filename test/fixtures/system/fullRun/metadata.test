@@ -1,0 +1,7 @@
+FORMAT: 1
+HOST: https://example.org/
+
+---[to]---
+
+<?php
+
