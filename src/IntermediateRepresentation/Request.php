@@ -9,15 +9,20 @@ class Request implements Message
     /**
      * Name.
      */
-    public $name      = '';
+    public $name        = '';
+
+    /**
+     * Description.
+     */
+    public $description = '';
 
     /**
      * Media type.
      */
-    public $mediaType = '';
+    public $mediaType   = '';
 
     /**
      * Payload as a `atoum\apiblueprint\IntermediateRepresentation\Payload` object.
      */
-    public $payload   = null;
+    public $payload     = null;
 }

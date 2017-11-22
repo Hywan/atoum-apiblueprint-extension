@@ -317,28 +317,21 @@ class Parser
                             );
 
                             $actionContent = trim($nextNodeInListItem->getStringContent());
+                            $actionType    = $this->getActionType($actionContent, $actionMatches);
 
-                            switch ($this->getActionType($actionContent, $actionMatches)) {
-                                case self::ACTION_REQUEST:
+                            if (self::ACTION_REQUEST === $actionType ||
+                                self::ACTION_RESPONSE === $actionType) {
+                                $requestOrResponse = null;
+
+                                if (self::ACTION_REQUEST === $actionType) {
                                     $request            = new IR\Request();
                                     $request->name      = trim($actionMatches['name'] ?? '');
                                     $request->mediaType = trim($actionMatches['mediaType'] ?? '');
 
                                     $action->messages[] = $request;
 
-                                    $event             = $this->peek();
-                                    $payloadNode       = $event->getNode();
-                                    $payloadIsEntering = $event->isEntering();
-
-                                    if (($payloadNode instanceof Block\Paragraph && $payloadIsEntering) ||
-                                        ($payloadNode instanceof Block\ListBlock && $payloadIsEntering)) {
-                                        $this->next();
-                                        $this->parsePayload($payloadNode, $request);
-                                    }
-
-                                    break;
-
-                                case self::ACTION_RESPONSE:
+                                    $requestOrResponse = $request;
+                                } else {
                                     $response            = new IR\Response();
                                     $response->mediaType = trim($actionMatches['mediaType'] ?? '');
 
@@ -350,17 +343,41 @@ class Parser
 
                                     $action->messages[] = $response;
 
+                                    $requestOrResponse = $response;
+                                }
+
+                                $event             = $this->peek();
+                                $payloadNode       = $event->getNode();
+                                $payloadIsEntering = $event->isEntering();
+
+                                // Assume the paragraph is the description.
+                                if ($payloadNode instanceof Block\Paragraph && $payloadIsEntering) {
+                                    $this->next();
+                                    $requestOrResponse->description = $payloadNode->getStringContent();
+
+                                    // But maybe it is wrong. So let's
+                                    // peek the next node and see what it
+                                    // is.
                                     $event             = $this->peek();
                                     $payloadNode       = $event->getNode();
                                     $payloadIsEntering = $event->isEntering();
+                                }
 
-                                    if (($payloadNode instanceof Block\Paragraph && $payloadIsEntering) ||
-                                        ($payloadNode instanceof Block\ListBlock && $payloadIsEntering)) {
-                                        $this->next();
-                                        $this->parsePayload($payloadNode, $response);
-                                    }
+                                // There is a list of payloads.
+                                if ($payloadNode instanceof Block\ListBlock && $payloadIsEntering) {
+                                    $this->next();
+                                    $this->parsePayload($payloadNode, $request);
+                                }
 
-                                    break;
+                                // If there is a description and no
+                                // payload, then the description is the
+                                // `Body` payload.
+                                if (!empty($requestOrResponse->description) && null === $requestOrResponse->payload) {
+                                    $payload                        = new IR\Payload();
+                                    $payload->body                  = $requestOrResponse->description;
+                                    $requestOrResponse->description = '';
+                                    $requestOrResponse->payload     = $payload;
+                                }
                             }
                         }
                     }
