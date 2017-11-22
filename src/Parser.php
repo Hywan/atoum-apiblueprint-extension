@@ -415,17 +415,26 @@ class Parser
                         );
 
                         $payloadContent = trim($nextNodeInListItem->getStringContent());
+                        $payloadType    = $this->getPayloadType($payloadContent, $payloadMatches);
 
-                        switch ($this->getPayloadType($payloadContent, $payloadMatches)) {
+                        switch ($payloadType) {
                             case self::PAYLOAD_BODY:
+                            case self::PAYLOAD_SCHEMA:
                                 $event          = $this->peek();
-                                $bodyNode       = $event->getNode();
-                                $bodyIsEntering = $event->isEntering();
+                                $bodyOrSchemaNode       = $event->getNode();
+                                $bodyOrSchemaIsEntering = $event->isEntering();
 
-                                if ($bodyNode instanceof Block\Paragraph && $bodyIsEntering) {
+                                if (($bodyOrSchemaNode instanceof Block\Paragraph && $bodyOrSchemaIsEntering) ||
+                                    ($bodyOrSchemaNode instanceof Block\FencedCode && $bodyOrSchemaIsEntering)) {
                                     $this->next();
 
-                                    $payload->body = $bodyNode->getStringContent();
+                                    $bodyOrSchemaContent = $bodyOrSchemaNode->getStringContent();
+
+                                    if (self::PAYLOAD_BODY === $payloadType) {
+                                        $payload->body = $bodyOrSchemaContent;
+                                    } else {
+                                        $payload->schema = $bodyOrSchemaContent;
+                                    }
                                 }
 
                                 break;
@@ -453,19 +462,6 @@ class Parser
 
                             case self::PAYLOAD_ATTRIBUTES:
                                 throw new \RuntimeException('Payload Attributes are not implemented yet.');
-
-                                break;
-
-                            case self::PAYLOAD_SCHEMA:
-                                $event            = $this->peek();
-                                $schemaNode       = $event->getNode();
-                                $schemaIsEntering = $event->isEntering();
-
-                                if ($schemaNode instanceof Block\Paragraph && $schemaIsEntering) {
-                                    $this->next();
-
-                                    $payload->schema = $schemaNode->getStringContent();
-                                }
 
                                 break;
                         }
