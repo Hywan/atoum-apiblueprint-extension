@@ -380,8 +380,9 @@ class Parser extends test
                 $datum  =
                     '# Group A' . "\n" .
                     '## Resource 1 [/group/a/resource/1]' . "\n" .
-                    '### Action Foo Bar [GET]' . "\n" .
-                    '### Action Baz Qux [HELLO]'
+                    '### Action Foo Bar [GET /group/a/resource/1/action/foo-bar]' . "\n" .
+                    '### Action Baz Qux [HELLO]' . "\n" .
+                    '### GET'
             )
             ->when($result = $parser->parse($datum))
             ->then
@@ -389,16 +390,21 @@ class Parser extends test
                     $action1                = new IR\Action(),
                     $action1->name          = 'Action Foo Bar',
                     $action1->requestMethod = 'GET',
+                    $action1->uriTemplate   = '/group/a/resource/1/action/foo-bar',
 
                     $action2                = new IR\Action(),
                     $action2->name          = 'Action Baz Qux',
                     $action2->requestMethod = 'HELLO',
+
+                    $action3                = new IR\Action(),
+                    $action3->requestMethod = 'GET',
 
                     $resource              = new IR\Resource(),
                     $resource->name        = 'Resource 1',
                     $resource->uriTemplate = '/group/a/resource/1',
                     $resource->actions[]   = $action1,
                     $resource->actions[]   = $action2,
+                    $resource->actions[]   = $action3,
 
                     $group              = new IR\Group(),
                     $group->name        = 'A',
