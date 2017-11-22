@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint\IntermediateRepresentation;
 
-class Response
+class Response implements Message
 {
     /**
      * Status code as an integer.

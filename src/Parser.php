@@ -220,6 +220,8 @@ class Parser
 
     protected function parseResource(Block\Heading $node, $parent, string $name, string $uriTemplate)
     {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
         $resource              = new IR\Resource();
         $resource->name        = trim($name);
         $resource->uriTemplate = strtolower(trim($uriTemplate));
@@ -263,6 +265,8 @@ class Parser
         string $requestMethod,
         string $uriTemplate
     ) {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
         $action                = new IR\Action();
         $action->name          = trim($name);
         $action->requestMethod = strtoupper(trim($requestMethod));
@@ -297,7 +301,15 @@ class Parser
                         $nextNodeInListItem = $event->getNode();
                         $isEntering         = $event->isEntering();
 
-                        if ($event->getNode() instanceof Block\Paragraph && $isEntering) {
+                        if ($nextNodeInListItem instanceof Block\Paragraph && $isEntering) {
+                            $this->next();
+
+                            // Move to the end of the paragraph.
+                            while(
+                                (($event = $this->next()) ?? false) &&
+                                !($event->getNode() instanceof Block\Paragraph && false === $event->isEntering())
+                            );
+
                             $actionContent = trim($nextNodeInListItem->getStringContent());
 
                             switch ($this->getActionType($actionContent, $actionMatches)) {
@@ -307,6 +319,16 @@ class Parser
                                     $request->mediaType = trim($actionMatches['mediaType'] ?? '');
 
                                     $action->messages[] = $request;
+
+                                    $event             = $this->peek();
+                                    $payloadNode       = $event->getNode();
+                                    $payloadIsEntering = $event->isEntering();
+
+                                    if (($payloadNode instanceof Block\Paragraph && $payloadIsEntering) ||
+                                        ($payloadNode instanceof Blog\ListBlock && $payloadIsEntering)) {
+                                        $this->next();
+                                        $this->parsePayload($payloadNode, $request);
+                                    }
 
                                     break;
 
@@ -322,12 +344,43 @@ class Parser
 
                                     $action->messages[] = $response;
 
+                                    $event             = $this->peek();
+                                    $payloadNode       = $event->getNode();
+                                    $payloadIsEntering = $event->isEntering();
+
+                                    if (($payloadNode instanceof Block\Paragraph && $payloadIsEntering) ||
+                                        ($payloadNode instanceof Block\ListBlock && $payloadIsEntering)) {
+                                        $this->next();
+                                        $this->parsePayload($payloadNode, $response);
+                                    }
+
                                     break;
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    protected function parsePayload($node, IR\Message $requestOrResponse)
+    {
+        $this->debug('>> ' . __FUNCTION__ . "\n");
+
+        // The payload is a paragraph representing the body.
+        if ($node instanceof Block\Paragraph) {
+            $payload = new IR\Payload();
+            $payload->body = $node->getStringContent();
+
+            $requestOrResponse->payload = $payload;
+
+            // Move to the end of the paragraph.
+            while(
+                (($event = $this->next()) ?? false) &&
+                !($event->getNode() instanceof Block\Paragraph && false === $event->isEntering())
+            );
+        } elseif ($node instanceof Block\ListBlock) {
+            throw new \RuntimeException('damn');
         }
     }
 
