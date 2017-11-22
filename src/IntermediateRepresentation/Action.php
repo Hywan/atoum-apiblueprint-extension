@@ -21,5 +21,8 @@ class Action
      */
     public $uriTemplate   = '';
 
-    public $messages = [];
+    /**
+     * Sequence of requests and responses.
+     */
+    public $messages      = [];
 }

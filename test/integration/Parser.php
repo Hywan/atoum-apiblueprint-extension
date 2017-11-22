@@ -13,7 +13,6 @@ use mageekguy\atoum\test;
 
 class Parser extends test
 {
-    /*
     public function test_empty_document()
     {
         $this
@@ -411,9 +410,8 @@ class Parser extends test
                 ->object($result)
                     ->isEqualTo($document);
     }
-    */
 
-    public function test_one_complete_action_in_a_resource()
+    public function test_one_action_with_no_payloads_in_a_resource()
     {
         $this
             ->given(
@@ -421,14 +419,48 @@ class Parser extends test
                 $datum  =
                     '# Resource 1 [/group/a/resource/1]' . "\n" .
                     '## Action Foo Bar [GET]' . "\n" .
-                    '+ Request A (media/type)'
+                    '+ Request A (media/type1)' . "\n" .
+                    '+ Response 123 (media/type2)' . "\n" .
+                    '+ Request B' . "\n" .
+                    '+ Request' . "\n" .
+                    '+ Response (media/type3)' . "\n" .
+                    '+ Request (media/type4)' . "\n" .
+                    '+ Response'
             )
             ->when($result = $parser->parse($datum))
             ->then
                 ->let(
+                    $request1            = new IR\Request(),
+                    $request1->name      = 'A',
+                    $request1->mediaType = 'media/type1',
+
+                    $request2            = new IR\Request(),
+                    $request2->name      = 'B',
+
+                    $request3            = new IR\Request(),
+
+                    $request4            = new IR\Request(),
+                    $request4->mediaType = 'media/type4',
+
+                    $response1             = new IR\Response(),
+                    $response1->statusCode = 123,
+                    $response1->mediaType  = 'media/type2',
+
+                    $response2             = new IR\Response(),
+                    $response2->mediaType  = 'media/type3',
+
+                    $response3             = new IR\Response(),
+
                     $action                = new IR\Action(),
                     $action->name          = 'Action Foo Bar',
                     $action->requestMethod = 'GET',
+                    $action->messages[]    = $request1,
+                    $action->messages[]    = $response1,
+                    $action->messages[]    = $request2,
+                    $action->messages[]    = $request3,
+                    $action->messages[]    = $response2,
+                    $action->messages[]    = $request4,
+                    $action->messages[]    = $response3,
 
                     $resource              = new IR\Resource(),
                     $resource->name        = 'Resource 1',

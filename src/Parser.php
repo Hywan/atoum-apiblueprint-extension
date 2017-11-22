@@ -281,12 +281,9 @@ class Parser
             $this->next();
 
             if ($nextNode instanceof Block\ListBlock && $isEntering) {
-                var_dump('there');
                 while($event = $this->peek()) {
                     $nextNodeInListBlock = $event->getNode();
                     $isEntering  = $event->isEntering();
-
-                    var_dump('heree');
 
                     if ($nextNodeInListBlock instanceof Block\ListBlock && !$isEntering) {
                         return;
@@ -305,7 +302,25 @@ class Parser
 
                             switch ($this->getActionType($actionContent, $actionMatches)) {
                                 case self::ACTION_REQUEST:
-                                    $request = new IR\Action\Request();
+                                    $request            = new IR\Request();
+                                    $request->name      = trim($actionMatches['name'] ?? '');
+                                    $request->mediaType = trim($actionMatches['mediaType'] ?? '');
+
+                                    $action->messages[] = $request;
+
+                                    break;
+
+                                case self::ACTION_RESPONSE:
+                                    $response            = new IR\Response();
+                                    $response->mediaType = trim($actionMatches['mediaType'] ?? '');
+
+                                    if (!isset($actionMatches['statusCode']) || empty($actionMatches['statusCode'])) {
+                                        $response->statusCode = 200;
+                                    } else {
+                                        $response->statusCode = intval($actionMatches['statusCode']);
+                                    }
+
+                                    $action->messages[] = $response;
 
                                     break;
                             }
@@ -345,8 +360,13 @@ class Parser
     protected function getActionType(string $actionContent, &$matches = []): int
     {
         // Request.
-        if (0 !== preg_match('^Request(?<name>\h+[^\(]+)?(?<mediaType>\h+\([^\)]+\))?/', $actionContent, $matches)) {
+        if (0 !== preg_match('/^Request(?<name>\h+[^\(]*)?(?:\((?<mediaType>[^\)]+)\))?/', $actionContent, $matches)) {
             return self::ACTION_REQUEST;
+        }
+
+        // Response.
+        if (0 !== preg_match('/^Response(?<statusCode>\h+\d+)?(?:\h+\((?<mediaType>[^\)]+)\))?/', $actionContent, $matches)) {
+            return self::ACTION_RESPONSE;
         }
 
         // Unknown.
