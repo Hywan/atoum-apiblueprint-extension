@@ -40,7 +40,8 @@ class Compiler extends test
                 $finder->getInnerIterator()->append(new \FilesystemIterator(dirname(__DIR__) . '/fixtures/finder/z')),
 
                 $this->mockGenerator->orphanize('__construct'),
-                $outputFile = new \mock\mageekguy\atoum\writers\file(),
+                $outputFile = new \mock\mageekguy\atoum\writers\file('php://memory'),
+                $this->calling($outputFile)->write->doesNothing(),
 
                 $parser                        = new \mock\atoum\apiblueprint\Parser(),
                 $document                      = new LUT\IntermediateRepresentation\Document(),

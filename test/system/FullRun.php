@@ -35,8 +35,10 @@ class FullRun extends test
 
         $this
             ->executeOnFailure(
-                function () use (&$file) {
-                    echo 'Using file `', $file->getBasename(), '`.', "\n";
+                function () use (&$file, $uri) {
+                    echo
+                        'Temporary file is `', $uri, '`.', "\n",
+                        'Using file `', $file->getBasename(), '`.', "\n";
                 }
             );
 
@@ -53,5 +55,7 @@ class FullRun extends test
             ftruncate($collectorFileDescriptor, 0);
             rewind($collectorFileDescriptor);
         }
+
+        unlink($uri);
     }
 }

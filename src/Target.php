@@ -10,6 +10,24 @@ class Target
 {
     public function compile(IntermediateRepresentation\Document $document, file $outputFile)
     {
-        $outputFile->write('<?php' . "\n\n");
+        $outputFile->write('namespace atoum\apiblueprint\generated;' . "\n\n");
+
+        $testSuiteName = $document->apiName;
+
+        if (empty($testSuiteName)) {
+            $testSuiteName = 'Unknown' . sha1(serialize($document));
+        }
+
+        $outputFile->write(
+            'class ' . $testSuiteName . ' extends \mageekguy\atoum\test' . "\n" .
+            '{' . "\n" .
+            '    protected $_host = null;' . "\n\n" .
+            '    public function setUp()' . "\n" .
+            '    {' . "\n" .
+            '        $this->_host = \'' . $document->metadata['host'] . '\';' . "\n" .
+            '    }'
+        );
+
+        $outputFile->write("\n" . '}');
     }
 }

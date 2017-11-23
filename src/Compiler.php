@@ -20,7 +20,7 @@ class Compiler
                 mkdir($outputDirectory, 0777, true);
             }
 
-            $outputFileName = $outputDirectory . '/' . sha1(__DIR__ . uniqid()) . '.php';
+            $outputFileName = $outputDirectory . '/' . uniqid() . '.php';
 
             if (true === file_exists($outputFileName)) {
                 unlink($outputFileName);
