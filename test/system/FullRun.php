@@ -41,7 +41,7 @@ class FullRun extends test
             );
 
         foreach ($files as $file) {
-            [$input, $output] = preg_split('/\s+---\[to\]---\s+/', file_get_contents($file->getPathname()));
+            list($input, $output) = preg_split('/\s+---\[to\]---\s+/', file_get_contents($file->getPathname()));
 
             $target->compile($parser->parse($input), $collector);
 
