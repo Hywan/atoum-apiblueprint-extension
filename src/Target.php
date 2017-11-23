@@ -19,7 +19,7 @@ class Target
         }
 
         $outputFile->write(
-            'class ' . $testSuiteName . ' extends \mageekguy\atoum\test' . "\n" .
+            'class ' . $testSuiteName . ' extends \atoum\apiblueprint\test' . "\n" .
             '{' . "\n" .
             '    protected $_host = null;' . "\n\n" .
             '    public function setUp()' . "\n" .
