@@ -19,6 +19,7 @@
     },
     "require": {
         "php"              : ">7.0",
+        "ext-curl"         : "*",
         "ext-mbstring"     : "*",
         "atoum/atoum"      : "~3.2",
         "hoa/ustring"      : "~4.0",
