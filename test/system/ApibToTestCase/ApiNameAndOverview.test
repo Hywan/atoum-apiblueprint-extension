@@ -10,7 +10,7 @@ Blog** service.
 
 namespace atoum\apiblueprint\generated;
 
-class Basic___example___API__ extends \atoum\apiblueprint\test
+class Basic _example_ API extends \atoum\apiblueprint\test
 {
     protected $_host = null;
 
