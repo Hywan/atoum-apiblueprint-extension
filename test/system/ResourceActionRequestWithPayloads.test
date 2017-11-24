@@ -1,0 +1,52 @@
+FORMAT: 1A
+HOST: https://example.org/
+
+# API Name
+
+# Resource 1 [/group/a/resource/1]
+
+## Action Foo Bar [GET]
+
++ Request A (media/type1)
+
+  + Body
+
+    {
+        "message": "Hello, World"
+    }
+
+  + Headers
+
+    Foo: Bar
+    Baz: Qux
+
+  + Schema
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string"
+            }
+        }
+    }
+
+
+---[to]---
+
+namespace atoum\apiblueprint\generated;
+
+class Basic___example___API__ extends \atoum\apiblueprint\test
+{
+    protected $_host = null;
+
+    public function setUp()
+    {
+        $this->_host = 'https://example.org/';
+    }
+
+    public function test action foo bar request a()
+    {
+    }
+}

@@ -84,7 +84,54 @@ class Target
                 '        $this->skip(\'Action `' .$action->name . '` for the resource `' . $resource->name . '` has no message.\');' . "\n" .
                 '    }'
             );
+        } else {
+            foreach ($this->groupMessagesByTransactions($action) as $i => $transaction) {
+                $outputFile->write(
+                    "\n\n" .
+                    '    public function ' . $resourceName . ' ' . $actionName . ' transaction ' . $i . '()' . "\n" .
+                    '    {' . "\n" .
+                    '        $requester = new \atoum\apiblueprint\Http\Requester();' . "\n" .
+                    '        $expectedResponses = [];' . "\n\n"
+                );
+
+                foreach ($transaction as $message) {
+                    if ($message instanceof IR\Request) {
+                        $outputFile->write(
+                            '        $requester->addRequest(' . "\n" .
+                            '            \'' . $action->requestMethod . '\',' . "\n" .
+                            '            $this->_host . \'' . $action->uriTemplate . '\',' . "\n" .
+                            '            [' . "\n" .
+                            $this->arrayAsStringRepresentation($message->payload->headers, '                ') .
+                            '            ]' . "\n" .
+                            '        );' . "\n"
+                        );
+                    } elseif ($message instanceof IR\Response) {
+                    }
+                }
+
+                $outputFile->write(
+                    "\n" .
+                    '        $this->responsesMatch($requester->send(), $expectedResponses);' . "\n" .
+                    '    }'
+                );
+            }
         }
+    }
+
+    protected function arrayAsStringRepresentation(array $array, string $linePrefix = ''): string
+    {
+        $out = '';
+
+        foreach ($array as $key => $value) {
+            $out .= $linePrefix . var_export($key, true) . ' => ' . var_export($value, true) . ',' . "\n";
+        }
+
+        return $out;
+    }
+
+    public function groupMessagesByTransactions(IR\Action $action): \Generator
+    {
+        yield $action->messages;
     }
 
     public function stringToPHPIdentifier(string $string, bool $toLowerCase = true): string

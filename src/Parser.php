@@ -464,15 +464,10 @@ class Parser
                                 if ($headersNode instanceof Block\Paragraph && $headersIsEntering) {
                                     $this->next();
 
-                                    foreach (preg_split('/\v+/', $headersNode->getStringContent()) as $line) {
-                                        if (false === $pos = strpos($line, ':')) {
-                                            continue;
-                                        }
-
-                                        $payload->headers[
-                                            trim(substr($line, 0, $pos))
-                                        ] = trim(substr($line, $pos + 1));
-                                    }
+                                    $payload->headers = array_merge(
+                                        $payload->headers,
+                                        Http\Response::parseRawHeaders($headersNode->getStringContent())
+                                    );
                                 }
 
                                 break;

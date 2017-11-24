@@ -6,7 +6,7 @@ namespace atoum\apiblueprint;
 
 use mageekguy\atoum;
 
-class test implements \mageekguy\atoum\test
+class test extends \mageekguy\atoum\test
 {
     public function getTestedClassName()
     {
@@ -16,5 +16,24 @@ class test implements \mageekguy\atoum\test
     public function getTestedClassNamespace()
     {
         return '\\';
+    }
+
+    public function responsesMatch(\Generator $responses, array $expectedResponses): self
+    {
+        foreach ($responses as $i => $response) {
+            if (!isset($expectedResponses[$i])) {
+                $this->boolean(true);
+
+                continue;
+            }
+
+            $expectedResponse = $expectedResponses[$i];
+
+            $this
+                ->integer($expectedResponse['statusCode'])
+                    ->isEqualTo($response->statusCode);
+        }
+
+        return $this;
     }
 }

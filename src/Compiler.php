@@ -29,6 +29,8 @@ class Compiler
             $outputFile = new file($outputFileName);
         }
 
+        $outputFile->write('<?php' . "\n\n" . 'declare(strict_types=1);' . "\n\n");
+
         $parser = $parser ?? static::getParser();
         $target = $target ?? static::getTarget();
 
