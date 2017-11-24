@@ -32,26 +32,23 @@ class Target
             '    }'
         );
 
-        foreach ($document->resources as $resource)
-        {
-            $this->compileResource($resource, $outputFile);
+        foreach ($document->resources as $i => $resource) {
+            $resourceName = $resource->name;
+
+            if (empty($resourceName)) {
+                $resourceName = 'test resource unknonwn' . $i;
+            } else {
+                $resourceName = 'test resource ' . $this->stringToPHPIdentifier($resourceName);
+            }
+
+            $this->compileResource($resource, $resourceName, $outputFile);
         }
 
         $outputFile->write("\n" . '}');
     }
 
-    public function compileResource(IR\Resource $resource, file $outputFile)
+    public function compileResource(IR\Resource $resource, string $resourceName, file $outputFile)
     {
-        static $_unknownResourceId = 0;
-
-        $resourceName = $resource->name;
-
-        if (empty($resourceName)) {
-            $resourceName = 'test resource unknonwn' . $_unknownResourceId++;
-        } else {
-            $resourceName = 'test resource ' . $this->stringToPHPIdentifier($resourceName);
-        }
-
         if (empty($resource->actions)) {
             $outputFile->write(
                 "\n\n" .
