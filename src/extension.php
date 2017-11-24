@@ -9,19 +9,29 @@ use mageekguy\atoum;
 class extension implements atoum\extension
 {
     protected $_apibFinder = null;
+    protected $_directoryToTest = null;
 
     public function __construct(atoum\configurator $configurator = null)
     {
         if ($configurator) {
             $parser = $configurator->getScript()->getArgumentsParser();
 
-            $handler = function ($script, $argument, $values) {
+            $selfHandler = function ($script, $argument, $values) {
                 $script->getRunner()->addTestsFromDirectory(dirname(__DIR__) . '/test/');
             };
 
+            $directoryToTest = &$this->_directoryToTest;
+
+            $extensionHandler = function ($script, $argument, $values) use (&$directoryToTest) {
+                if (null !== $directoryToTest) {
+                    $script->getRunner()->addTestsFromDirectory($directoryToTest);
+                }
+            };
+
             $parser
-                ->addHandler($handler, ['--test-ext'])
-                ->addHandler($handler, ['--test-it']);
+                ->addHandler($selfHandler, ['--test-ext'])
+                ->addHandler($selfHandler, ['--test-it'])
+                ->addHandler($extensionHandler, ['--extension-apiblueprint']);
         }
 
         $this->_apibFinder = new Finder();
@@ -30,7 +40,11 @@ class extension implements atoum\extension
     public function addToRunner(atoum\runner $runner)
     {
         $runner->addExtension($this);
-        (new Compiler())->compile($this->_apibFinder);
+
+        // This trick is necessary to add the directory containing the
+        // generated tests after `atoum\runner::resetTestPaths` has been
+        // called.
+        $_SERVER['argv'][] = '--extension-apiblueprint';
 
         return $this;
     }
@@ -65,5 +79,10 @@ class extension implements atoum\extension
     public function getAPIBFinder(): \AppendIterator
     {
         return $this->_apibFinder->getInnerIterator();
+    }
+
+    public function compileAndEnqueue()
+    {
+        $this->_directoryToTest = dirname((new Compiler())->compile($this->_apibFinder));
     }
 }

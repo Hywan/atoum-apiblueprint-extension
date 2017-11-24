@@ -11,16 +11,16 @@ class Compiler
     protected static $_parser = null;
     protected static $_target = null;
 
-    public function compile(\Traversable $finder, file $outputFile = null, Parser $parser = null, Target $target = null)
+    public function compile(\Traversable $finder, file $outputFile = null, Parser $parser = null, Target $target = null): string
     {
         if (null === $outputFile) {
-            $outputDirectory = sys_get_temp_dir() . '/atoum/apiblueprint/';
+            $outputDirectory = sys_get_temp_dir() . '/atoum/apiblueprint/' . uniqid();
 
             if (false === is_dir($outputDirectory)) {
                 mkdir($outputDirectory, 0777, true);
             }
 
-            $outputFileName = $outputDirectory . '/' . uniqid() . '.php';
+            $outputFileName = $outputDirectory . '/testSuite.php';
 
             if (true === file_exists($outputFileName)) {
                 unlink($outputFileName);
@@ -40,6 +40,8 @@ class Compiler
             );
             $target->compile($intermediateRepresentation, $outputFile);
         }
+
+        return $outputFile->getFilename();
     }
 
     public static function getParser(): Parser

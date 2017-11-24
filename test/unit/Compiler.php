@@ -20,7 +20,7 @@ class Compiler extends test
                 $this->function->file_exists = function ($path) use ($self): bool {
                     $self
                         ->string($path)
-                            ->matches('#^' . sys_get_temp_dir() . '/atoum/apiblueprint/([^\.]+)\.php$#');
+                            ->matches('#^' . sys_get_temp_dir() . '/atoum/apiblueprint/([^\.]+)/testSuite\.php$#');
 
                     return false;
                 }
@@ -42,6 +42,7 @@ class Compiler extends test
                 $this->mockGenerator->orphanize('__construct'),
                 $outputFile = new \mock\mageekguy\atoum\writers\file('php://memory'),
                 $this->calling($outputFile)->write->doesNothing(),
+                $this->calling($outputFile)->getFilename = 'php://memory',
 
                 $parser                        = new \mock\atoum\apiblueprint\Parser(),
                 $document                      = new LUT\IntermediateRepresentation\Document(),
@@ -54,6 +55,8 @@ class Compiler extends test
             )
             ->when($result = $compiler->compile($finder, $outputFile, $parser, $target))
             ->then
+                ->string($result)
+                    ->isEqualTo('php://memory')
                 ->mock($parser)
                     ->call('parse')->withIdenticalArguments('baz')->once()
                 ->mock($target)

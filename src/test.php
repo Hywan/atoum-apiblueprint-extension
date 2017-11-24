@@ -22,7 +22,7 @@ class test extends \mageekguy\atoum\test
     {
         foreach ($responses as $i => $response) {
             if (!isset($expectedResponses[$i])) {
-                $this->boolean(true);
+                $this->boolean(true)->isTrue();
 
                 continue;
             }

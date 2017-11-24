@@ -20,6 +20,9 @@ use atoum\apiblueprint;
 
 $extension = new apiblueprint\extension($script);
 $extension->addToRunner($runner);
+
+$extension->getAPIBFinder()->append(new FilesystemIterator(__DIR__ . '/http'));
+$extension->compileAndEnqueue();
 ```
 
 ## Testing
