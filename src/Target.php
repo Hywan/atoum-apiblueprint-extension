@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace atoum\apiblueprint;
 
+use Hoa\Ustring;
 use mageekguy\atoum\writers\file;
 
 class Target
@@ -16,6 +17,8 @@ class Target
 
         if (empty($testSuiteName)) {
             $testSuiteName = 'Unknown' . sha1(serialize($document));
+        } else {
+            $testSuiteName = (new UString($testSuiteName))->toAscii()->replace('/[^a-zA-Z0-9_\x80-\xff]/', '__');
         }
 
         $outputFile->write(
