@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace atoum\apiblueprint\test\system;
+namespace atoum\apiblueprint\test\integration;
 
-use atoum\apiblueprint\Parser;
-use atoum\apiblueprint\Target;
+use atoum\apiblueprint as LUT;
 use mageekguy\atoum\test;
 use mageekguy\atoum\writers\file;
 
-class FullRun extends test
+class Target extends test
 {
     public function getTestedClassName()
     {
@@ -23,9 +22,9 @@ class FullRun extends test
 
     public function test_from_apib_files_to_atoum_tests()
     {
-        $files  = new \FilesystemIterator(__DIR__ . '/ApibToTestCase/');
-        $parser = new Parser();
-        $target = new Target();
+        $files  = new \FilesystemIterator(__DIR__ . '/ApibToTestSuites/');
+        $parser = new LUT\Parser();
+        $target = new LUT\Target();
 
         $resource  = (new \ReflectionClass(file::class))->getProperty('resource');
         $resource->setAccessible(true);
