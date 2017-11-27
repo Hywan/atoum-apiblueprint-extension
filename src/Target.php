@@ -106,6 +106,17 @@ class Target
                             '        );' . "\n"
                         );
                     } elseif ($message instanceof IR\Response) {
+                        $outputFile->write(
+                            '        $expectedResponses[] = [' . "\n" .
+                            '            \'statusCode\' => ' . $message->statusCode . ',' . "\n" .
+                            '            \'mediaType\'  => \'' . $message->mediaType . '\',' . "\n" .
+                            '            \'headers\'    => [' . "\n" .
+                            $this->arrayAsStringRepresentation($message->payload->headers, '                ') .
+                            '            ],' . "\n" .
+                            '            \'body\'       => ' . var_export($message->payload->body, true) . ',' . "\n" .
+                            '            \'schema\'     => ' . var_export($message->payload->schema, true) . ',' . "\n" .
+                            '        ];' . "\n"
+                        );
                     }
                 }
 

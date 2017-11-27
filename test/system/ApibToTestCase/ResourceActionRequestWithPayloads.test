@@ -26,6 +26,17 @@ HOST: https://example.org/
         }
     }
 
++ Response 200 (media/type2)
+
+  + Headers
+
+    ooF: raB
+    zaB: xuQ
+
+  + Body
+
+    Hello
+
 ---[to]---
 
 namespace atoum\apiblueprint\generated;
@@ -52,6 +63,16 @@ class API Name extends \atoum\apiblueprint\test
                 'Baz' => 'Qux',
             ]
         );
+        $expectedResponses[] = [
+            'statusCode' => 200,
+            'mediaType'  => 'media/type2',
+            'headers'    => [
+                'ooF' => 'raB',
+                'zaB' => 'xuQ',
+            ],
+            'body'       => 'Hello',
+            'schema'     => '',
+        ];
 
         $this->responsesMatch($requester->send(), $expectedResponses);
     }
