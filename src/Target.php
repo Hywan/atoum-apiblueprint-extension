@@ -76,6 +76,12 @@ class Target
 
     public function compileAction(IR\Action $action, string $actionName, IR\Resource $resource, string $resourceName, file $outputFile)
     {
+        static $_defaultPayload = null;
+
+        if (null === $_defaultPayload) {
+            $_defaultPayload = new IR\Payload();
+        }
+
         if (empty($action->messages)) {
             $outputFile->write(
                 "\n\n" .
@@ -96,25 +102,29 @@ class Target
 
                 foreach ($transaction as $message) {
                     if ($message instanceof IR\Request) {
+                        $payload = $message->payload ?? $_defaultPayload;
+
                         $outputFile->write(
                             '        $requester->addRequest(' . "\n" .
                             '            \'' . $action->requestMethod . '\',' . "\n" .
                             '            $this->_host . \'' . $action->uriTemplate . '\',' . "\n" .
                             '            [' . "\n" .
-                            $this->arrayAsStringRepresentation($message->payload->headers, '                ') .
+                            $this->arrayAsStringRepresentation($payload->headers, '                ') .
                             '            ]' . "\n" .
                             '        );' . "\n"
                         );
                     } elseif ($message instanceof IR\Response) {
+                        $payload = $message->payload ?? $_defaultPayload;
+
                         $outputFile->write(
                             '        $expectedResponses[] = [' . "\n" .
                             '            \'statusCode\' => ' . $message->statusCode . ',' . "\n" .
                             '            \'mediaType\'  => \'' . $message->mediaType . '\',' . "\n" .
                             '            \'headers\'    => [' . "\n" .
-                            $this->arrayAsStringRepresentation($message->payload->headers, '                ') .
+                            $this->arrayAsStringRepresentation($payload->headers, '                ') .
                             '            ],' . "\n" .
-                            '            \'body\'       => ' . var_export($message->payload->body, true) . ',' . "\n" .
-                            '            \'schema\'     => ' . var_export($message->payload->schema, true) . ',' . "\n" .
+                            '            \'body\'       => ' . var_export($payload->body, true) . ',' . "\n" .
+                            '            \'schema\'     => ' . var_export($payload->schema, true) . ',' . "\n" .
                             '        ];' . "\n"
                         );
                     }
