@@ -1,19 +1,19 @@
 {
-    "name": "atoum/apiblueprint-extension",
-    "type": "library",
+    "name"       : "atoum/apiblueprint-extension",
+    "type"       : "library",
     "description": "Compile and run tests written in the API Blueprint format (`.apib`) with atoum",
-    "keywords": ["atoum", "test", "atoum-extension", "apiblueprint"],
-    "homepage": "http://www.atoum.org",
-    "license": "MIT",
-    "authors": [
+    "keywords"   : ["atoum", "test", "atoum-extension", "apiblueprint"],
+    "homepage"   : "http://www.atoum.org",
+    "license"    : "MIT",
+    "authors"    : [
         {
-            "name": "Ivan Enderlin",
+            "name" : "Ivan Enderlin",
             "email": "ivan.enderlin@hoa-project.net"
         }
     ],
     "autoload": {
         "psr-4": {
-            "atoum\\apiblueprint\\": "src",
+            "atoum\\apiblueprint\\"      : "src",
             "atoum\\apiblueprint\\test\\": "test"
         }
     },

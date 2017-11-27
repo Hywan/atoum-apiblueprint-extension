@@ -33,7 +33,7 @@ class Response
                 continue;
             }
 
-            $out[trim(substr($line, 0, $pos))] = trim(substr($line, $pos + 1));
+            $out[strtolower(trim(substr($line, 0, $pos)))] = trim(substr($line, $pos + 1));
         }
 
         return $out;

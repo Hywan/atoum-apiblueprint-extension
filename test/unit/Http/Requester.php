@@ -57,7 +57,7 @@ class Requester extends test
             ->given(
                 $method  = 'GET',
                 $url     = '/foo/bar',
-                $headers = ['Foo' => 'Bar'],
+                $headers = ['foo' => 'bar'],
 
                 $this->function->curl_multi_init->doesNothing(),
                 $this->function->curl_init->doesNothing(),
@@ -81,7 +81,7 @@ class Requester extends test
                             return $url;
                     }
                 },
-                $this->function->curl_multi_getcontent = 'Foo:BarHello, World!',
+                $this->function->curl_multi_getcontent = 'foo:barHello, World!',
 
                 $this->function->curl_multi_remove_handle->doesNothing(),
                 $this->function->curl_close->doesNothing(),

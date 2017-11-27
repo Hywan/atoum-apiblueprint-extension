@@ -59,16 +59,16 @@ class API Name extends \atoum\apiblueprint\test
             'GET',
             $this->_host . '/group/a/resource/1/action/foo-bar',
             [
-                'Foo' => 'Bar',
-                'Baz' => 'Qux',
+                'foo' => 'Bar',
+                'baz' => 'Qux',
             ]
         );
         $expectedResponses[] = [
             'statusCode' => 200,
             'mediaType'  => 'media/type2',
             'headers'    => [
-                'ooF' => 'raB',
-                'zaB' => 'xuQ',
+                'oof' => 'raB',
+                'zab' => 'xuQ',
             ],
             'body'       => 'Hello',
             'schema'     => '',

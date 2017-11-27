@@ -5,9 +5,11 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 $router = new Hoa\Router\Http();
 $router
     ->get(
-        'a',
+        'test1',
         '/test1',
         function () {
+            header('Content-Type: text/plain;charset=UTF-8');
+
             echo 'Hello, World!';
         }
     );

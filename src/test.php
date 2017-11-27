@@ -6,7 +6,7 @@ namespace atoum\apiblueprint;
 
 use mageekguy\atoum;
 
-class test extends \mageekguy\atoum\test
+class test extends atoum\test
 {
     public function getTestedClassName()
     {
@@ -31,13 +31,31 @@ class test extends \mageekguy\atoum\test
 
             $this
                 ->integer($response->statusCode)
-                    ->isIdenticalTo($expectedResponse['statusCode']);
+                    ->isIdenticalTo(
+                        $expectedResponse['statusCode'],
+                        'The expected HTTP status code is:' . "\n" .
+                        '    ' . $expectedResponse['statusCode'] . "\n" .
+                        'Received:' . "\n" .
+                        '    ' . $response->statusCode
+                    );
 
             if (!empty($expectedResponse['mediaType'])) {
                 $this
                     ->array($response->headers)
-                        ->string['Content-Type']
-                            ->isIdenticalTo($expectedResponse['mediaType']);
+                        ->hasKey(
+                            'content-type',
+                            'The expected HTTP `Content-Type` is `' .
+                            $expectedResponse['mediaType'].
+                            '` but this header is absent from the response.'
+                        )
+                        ->string['content-type']
+                            ->isIdenticalTo(
+                                $expectedResponse['mediaType'],
+                                'The expected HTTP `Content-Type` is:' . "\n" .
+                                '    ' . $expectedResponse['mediaType'] . "\n" .
+                                'Received:' . "\n" .
+                                '    ' . $response->headers['content-type']
+                            );
             }
 
             if (!empty($expectedResponse['headers'])) {
@@ -45,15 +63,31 @@ class test extends \mageekguy\atoum\test
 
                 foreach ($expectedResponse['headers'] as $headerName => $headerValue) {
                     $headerAsserter
+                        ->hasKey(
+                            $headerName,
+                            'The expected value for the HTTP header `' . $headerName . '` is `' .
+                            $headerValue .
+                            '` but this header is absent from the response.'
+                        )
                         ->string[$headerName]
-                            ->isIdenticalTo($headerValue);
+                            ->isIdenticalTo(
+                                $headerValue,
+                                'The expected value for the HTTP header `' . $headerName . '` is:' . "\n" .
+                                '    ' . $headerValue . "\n" .
+                                'Received:' . "\n" .
+                                '    ' . $response->headers[$headerName]
+                            );
                 }
             }
 
             if (!empty($expectedResponse['body'])) {
                 $this
                     ->string($response->body)
-                        ->isIdenticalTo($expectedResponse['body']);
+                        ->isIdenticalTo(
+                            $expectedResponse['body'],
+                            'The expected response body does not match the received one:' . "\n" .
+                            new atoum\tools\diffs\variable($expectedResponse['body'], $response->body)
+                        );
             }
         }
 

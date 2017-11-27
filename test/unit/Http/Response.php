@@ -47,7 +47,7 @@ class Response extends test
                     ->isIdenticalTo($url)
                 ->array($result->headers)
                     ->isIdenticalTo([
-                        'Baz' => 'Qux'
+                        'baz' => 'Qux'
                     ])
                 ->string($result->body)
                     ->isIdenticalTo($body);
@@ -71,8 +71,8 @@ class Response extends test
             ->then
                 ->array($result)
                     ->isEqualTo([
-                        'Foo' => 'Bar',
-                        'Baz' => 'Qux'
+                        'foo' => 'Bar',
+                        'baz' => 'Qux'
                     ]);
     }
 }

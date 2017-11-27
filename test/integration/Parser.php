@@ -583,8 +583,8 @@ class Parser extends test
                     $payload1          = new IR\Payload(),
                     $payload1->body    = '{"message": ' . "\n" . '"Hello, World!"}',
                     $payload1->headers = [
-                        'Foo' => 'Bar',
-                        'Baz' => 'Qux'
+                        'foo' => 'Bar',
+                        'baz' => 'Qux'
                     ],
                     $payload1->schema =
                         '{' . "\n" .
@@ -600,8 +600,8 @@ class Parser extends test
                     $payload2          = new IR\Payload(),
                     $payload2->body    = '{"message": "ok"}',
                     $payload2->headers = [
-                        'ooF' => 'raB',
-                        'zaB' => 'xuQ'
+                        'oof' => 'raB',
+                        'zab' => 'xuQ'
                     ],
 
                     $request            = new IR\Request(),
@@ -674,8 +674,8 @@ class Parser extends test
                     $payload          = new IR\Payload(),
                     $payload->body    = '{"message": ' . "\n" . ' "Hello, World!"}' . "\n",
                     $payload->headers = [
-                        'Foo' => 'Bar',
-                        'Bar' => 'Qux'
+                        'foo' => 'Bar',
+                        'bar' => 'Qux'
                     ],
                     $payload->schema =
                         '{' . "\n" .
