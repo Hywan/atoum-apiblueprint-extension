@@ -19,4 +19,4 @@ cache:
 
 script:
   - composer update
-  - vendor/bin/atoum --test-ext
+  - composer test

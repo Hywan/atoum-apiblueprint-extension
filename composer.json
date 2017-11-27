@@ -29,5 +29,8 @@
         "hoa/dispatcher": "~1.0",
         "hoa/router"    : "~3.0"
     },
-    "minimum-stability": "beta"
+    "minimum-stability": "beta",
+    "scripts": {
+        "test": "php -S 127.0.0.1:8888 -t test/system/ > /dev/null 2>&1 & test_php_pid=$!; vendor/bin/atoum --test-ext --force-terminal; kill $test_php_pid"
+    }
 }
