@@ -481,7 +481,7 @@ class Parser
         }
     }
 
-    protected function getHeaderType(string $headerContent, &$matches = []): int
+    public function getHeaderType(string $headerContent, &$matches = []): int
     {
         // Resource group section.
         if (0 !== preg_match('/^Group\h+([^\[\]\(\)]+)/', $headerContent, $matches)) {
@@ -506,12 +506,12 @@ class Parser
         return self::HEADER_UNKNOWN;
     }
 
-    protected function getHeaderContent(Block\Heading $node): string
+    public function getHeaderContent(Block\Heading $node): string
     {
         return trim($node->getStringContent() ?? '');
     }
 
-    protected function getActionType(string $actionContent, &$matches = []): int
+    public function getActionType(string $actionContent, &$matches = []): int
     {
         // Request.
         if (0 !== preg_match('/^Request(?<name>\h+[^\(]*)?(?:\((?<mediaType>[^\)]+)\))?/', $actionContent, $matches)) {
