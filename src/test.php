@@ -31,7 +31,30 @@ class test extends \mageekguy\atoum\test
 
             $this
                 ->integer($expectedResponse['statusCode'])
-                    ->isEqualTo($response->statusCode);
+                    ->isIdenticalTo($response->statusCode);
+
+            if (!empty($expectedResponse['mediaType'])) {
+                $this
+                    ->array($response->headers)
+                        ->string['Content-Type']
+                            ->isIdenticalTo($expectedResponse['mediaType']);
+            }
+
+            if (!empty($expectedResponse['headers'])) {
+                $headerAsserter = $this->array($response->headers);
+
+                foreach ($expectedResponse['headers'] as $headerName => $headerValue) {
+                    $headerAsserter
+                        ->string[$headerName]
+                            ->isIdenticalTo($headerValue);
+                }
+            }
+
+            if (!empty($expectedResponse['body'])) {
+                $this
+                    ->string($expectedResponse['body'])
+                        ->isIdenticalTo($response->body);
+            }
         }
 
         return $this;
