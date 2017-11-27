@@ -10,16 +10,6 @@ use mageekguy\atoum\writers\file;
 
 class Target extends test
 {
-    public function getTestedClassName()
-    {
-        return 'StdClass';
-    }
-
-    public function getTestedClassNamespace()
-    {
-        return '\\';
-    }
-
     public function test_from_apib_files_to_atoum_tests()
     {
         $files  = new \FilesystemIterator(__DIR__ . '/ApibToTestSuites/');
