@@ -552,7 +552,7 @@ class Parser extends test
                     '  + Headers' . "\n\n" .
 
                     '    Foo: Bar' . "\n" .
-                    '    Bar: Qux' . "\n\n" .
+                    '    Baz: Qux' . "\n\n" .
 
                     '  + Schema' . "\n\n" .
 
@@ -564,18 +564,29 @@ class Parser extends test
                     '                "type": "string"' . "\n" .
                     '            }' . "\n" .
                     '        }' . "\n" .
-                    '    }'
+                    '    }' . "\n\n" .
+
+                    '+ Response 123 (media/type2)' . "\n\n" .
+
+                    '  + Body' . "\n\n" .
+
+                    '    {"message": "ok"}' . "\n\n" .
+
+                    '  + Headers' . "\n\n" .
+
+                    '    ooF: raB' . "\n" .
+                    '    zaB: xuQ'
             )
             ->when($result = $parser->parse($datum))
             ->then
                 ->let(
-                    $payload          = new IR\Payload(),
-                    $payload->body    = '{"message": ' . "\n" . '"Hello, World!"}',
-                    $payload->headers = [
+                    $payload1          = new IR\Payload(),
+                    $payload1->body    = '{"message": ' . "\n" . '"Hello, World!"}',
+                    $payload1->headers = [
                         'Foo' => 'Bar',
-                        'Bar' => 'Qux'
+                        'Baz' => 'Qux'
                     ],
-                    $payload->schema =
+                    $payload1->schema =
                         '{' . "\n" .
                         '"$schema": "http://json-schema.org/draft-04/schema#",' . "\n" .
                         '"type": "object",' . "\n" .
@@ -586,15 +597,28 @@ class Parser extends test
                         '}' . "\n" .
                         '}',
 
+                    $payload2          = new IR\Payload(),
+                    $payload2->body    = '{"message": "ok"}',
+                    $payload2->headers = [
+                        'ooF' => 'raB',
+                        'zaB' => 'xuQ'
+                    ],
+
                     $request            = new IR\Request(),
                     $request->name      = 'A',
                     $request->mediaType = 'media/type1',
-                    $request->payload   = $payload,
+                    $request->payload   = $payload1,
+
+                    $response             = new IR\Response(),
+                    $response->statusCode = 123,
+                    $response->mediaType  = 'media/type2',
+                    $response->payload    = $payload2,
 
                     $action                = new IR\Action(),
                     $action->name          = 'Action Foo Bar',
                     $action->requestMethod = 'GET',
                     $action->messages[]    = $request,
+                    $action->messages[]    = $response,
 
                     $resource              = new IR\Resource(),
                     $resource->name        = 'Resource 1',

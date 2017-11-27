@@ -366,7 +366,7 @@ class Parser
                                 // There is a list of payloads.
                                 if ($payloadNode instanceof Block\ListBlock && $payloadIsEntering) {
                                     $this->next();
-                                    $this->parsePayload($payloadNode, $request);
+                                    $this->parsePayload($payloadNode, $requestOrResponse);
                                 }
 
                                 // If there is a description and no
@@ -406,15 +406,13 @@ class Parser
             $payload                    = new IR\Payload();
             $requestOrResponse->payload = $payload;
 
-            while($event = $this->peek()) {
+            while($event = $this->next()) {
                 $nextNodeInListBlock = $event->getNode();
                 $isEntering          = $event->isEntering();
 
                 if ($nextNodeInListBlock instanceof Block\ListBlock && !$isEntering) {
                     return;
                 }
-
-                $this->next();
 
                 if ($nextNodeInListBlock instanceof Block\ListItem && $isEntering) {
                     $event = $this->peek();
