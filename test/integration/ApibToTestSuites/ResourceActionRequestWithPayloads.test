@@ -45,7 +45,7 @@ class API Name extends \atoum\apiblueprint\test
 {
     protected $_host = null;
 
-    public function setUp()
+    public function beforeTestMethod($testMethod)
     {
         $this->_host = 'https://example.org/';
     }

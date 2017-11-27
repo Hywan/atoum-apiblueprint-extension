@@ -26,7 +26,7 @@ class Target
             'class ' . $testSuiteName . ' extends \atoum\apiblueprint\test' . "\n" .
             '{' . "\n" .
             '    protected $_host = null;' . "\n\n" .
-            '    public function setUp()' . "\n" .
+            '    public function beforeTestMethod($testMethod)' . "\n" .
             '    {' . "\n" .
             '        $this->_host = \'' . $document->metadata['host'] . '\';' . "\n" .
             '    }'
@@ -103,11 +103,16 @@ class Target
                 foreach ($transaction as $message) {
                     if ($message instanceof IR\Request) {
                         $payload = $message->payload ?? $_defaultPayload;
+                        $uri     = $action->uriTemplate;
+
+                        if (empty($uri)) {
+                            $uri = $resource->uriTemplate;
+                        }
 
                         $outputFile->write(
                             '        $requester->addRequest(' . "\n" .
                             '            \'' . $action->requestMethod . '\',' . "\n" .
-                            '            $this->_host . \'' . $action->uriTemplate . '\',' . "\n" .
+                            '            $this->_host . \'' . $uri . '\',' . "\n" .
                             '            [' . "\n" .
                             $this->arrayAsStringRepresentation($payload->headers, '                ') .
                             '            ]' . "\n" .

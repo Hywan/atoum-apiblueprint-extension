@@ -30,8 +30,8 @@ class test extends \mageekguy\atoum\test
             $expectedResponse = $expectedResponses[$i];
 
             $this
-                ->integer($expectedResponse['statusCode'])
-                    ->isIdenticalTo($response->statusCode);
+                ->integer($response->statusCode)
+                    ->isIdenticalTo($expectedResponse['statusCode']);
 
             if (!empty($expectedResponse['mediaType'])) {
                 $this
@@ -52,8 +52,8 @@ class test extends \mageekguy\atoum\test
 
             if (!empty($expectedResponse['body'])) {
                 $this
-                    ->string($expectedResponse['body'])
-                        ->isIdenticalTo($response->body);
+                    ->string($response->body)
+                        ->isIdenticalTo($expectedResponse['body']);
             }
         }
 

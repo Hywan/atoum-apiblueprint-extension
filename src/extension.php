@@ -17,7 +17,10 @@ class extension implements atoum\extension
             $parser = $configurator->getScript()->getArgumentsParser();
 
             $selfHandler = function ($script, $argument, $values) {
-                $script->getRunner()->addTestsFromDirectory(dirname(__DIR__) . '/test/');
+                $runner = $script->getRunner();
+
+                $runner->addTestsFromDirectory(dirname(__DIR__) . '/test/integration/');
+                $runner->addTestsFromDirectory(dirname(__DIR__) . '/test/unit/');
             };
 
             $directoryToTest = &$this->_directoryToTest;

@@ -25,5 +25,9 @@
         "hoa/ustring"      : "~4.0",
         "league/commonmark": "~0.16"
     },
+    "require-dev": {
+        "hoa/dispatcher": "~1.0",
+        "hoa/router"    : "~3.0"
+    },
     "minimum-stability": "beta"
 }
