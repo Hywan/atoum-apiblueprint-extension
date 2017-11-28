@@ -160,10 +160,8 @@ Get a single note.
 ### Update a Note [PUT]
 Update a single note by setting the title and/or body.
 
-::: warning
-#### <i class="fa fa-warning"></i> Caution
+#### Caution
 If the value for `title` or `body` is `null` or `undefined`, then the corresponding value is not modified on the server. However, if you send an empty string instead then it will **permanently overwrite** the original value.
-:::
 
 + Request (application/json)
 

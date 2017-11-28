@@ -11,34 +11,98 @@ class HeadingRenderer implements CommonMark\Block\Renderer\BlockRendererInterfac
 {
     public function render(CommonMark\Block\Element\AbstractBlock $block, CommonMark\ElementRendererInterface $htmlRenderer, $inTightList = false)
     {
-        $tag        = 'h' . $block->getLevel();
-        $attributes = ['class' => ''];
-        $parser     = new Parser();
+        $tag    = 'h' . $block->getLevel();
+        $class  = '';
+        $parser = new Parser();
 
         $blockContent = $parser->getHeaderContent($block);
 
         switch ($parser->getHeaderType($blockContent, $headerMatches)) {
             case Parser::HEADER_GROUP:
-                $attributes['class'] .= ' heading--type-group';
+                $class = 'heading--type-group';
 
                 break;
 
             case Parser::HEADER_RESOURCE:
-                $attributes['class'] .= ' heading--type-resource';
+                $class = 'heading--type-resource';
 
                 break;
 
             case Parser::HEADER_ACTION:
-                $attributes['class'] .= ' heading--type-action';
+                $class = 'heading--type-action';
 
                 break;
+
+            default:
+                if (1 === $block->getLevel()) {
+                    $class = 'heading--type-description';
+                }
         }
 
         foreach ($block->getData('attributes', []) as $key => $value) {
             $attributes[$key] = CommonMark\Util\Xml::escape($value, true);
         }
 
-        return new CommonMark\HtmlElement($tag, $attributes, $htmlRenderer->renderInlines($block->children()));
+        $isFirstHeadingAtThisLevel = true;
+        $previous                  = $block;
+
+        do {
+            $previous = $previous->previous();
+
+            if ($previous instanceof CommonMark\Block\Element\Heading) {
+                if ($previous->getLevel() < $block->getLevel()) {
+                    $isFirstHeadingAtThisLevel = true;
+                    $deltaPreviousLevel = 1;
+                } else {
+                    $isFirstHeadingAtThisLevel = false;
+                    $deltaPreviousLevel = $previous->getLevel() - $block->getLevel() + 1;
+                }
+
+                break;
+            }
+        } while (null !== $previous);
+
+        return
+            (true === $isFirstHeadingAtThisLevel && 1 === $block->getLevel() ? '' : '</div>') .
+            (false === $isFirstHeadingAtThisLevel ? str_repeat('</div>', $deltaPreviousLevel) : '') .
+            '<div class="' . $class . '">' .
+            '<' . $tag . '>' .
+            $htmlRenderer->renderInlines($block->children()) .
+            '</' . $tag . '>' .
+            '<div>';
+    }
+}
+
+class ParagraphRenderer implements CommonMark\Block\Renderer\BlockRendererInterface
+{
+    public function render(CommonMark\Block\Element\AbstractBlock $block, CommonMark\ElementRendererInterface $htmlRenderer, $inTightList = false)
+    {
+        if (true === $inTightList) {
+            return $htmlRenderer->renderInlines($block->children());
+        }
+
+        $attributes = [];
+
+        foreach ($block->getData('attributes', []) as $key => $value) {
+            $attributes[$key] = Xml::escape($value, true);
+        }
+
+        $metadata = true;
+
+        foreach ($block->children() as $child) {
+            if ($child instanceof CommonMark\Inline\Element\Text &&
+                0 === preg_match('/^([^:]+):(.*)$/', $child->getContent(), $match)) {
+                $metadata = false;
+
+                break;
+            }
+        }
+
+        if (true === $metadata) {
+            $attributes['class'] = 'metadata';
+        }
+
+        return new CommonMark\HtmlElement('p', $attributes, $htmlRenderer->renderInlines($block->children()));
     }
 }
 
@@ -66,6 +130,7 @@ function render(Finder $finder)
 {
     $environment = CommonMark\Environment::createCommonMarkEnvironment();
     $environment->addBlockRenderer(CommonMark\Block\Element\Heading::class, new HeadingRenderer());
+    $environment->addBlockRenderer(CommonMark\Block\Element\Paragraph::class, new ParagraphRenderer());
 
     $configuration = ['html_input' => 'escape'];
     $compiler      = new CommonMark\CommonMarkConverter($configuration, $environment);
