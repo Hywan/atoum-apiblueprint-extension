@@ -45,6 +45,7 @@ class HeadingRenderer implements CommonMark\Block\Renderer\BlockRendererInterfac
 
         $isFirstHeadingAtThisLevel = true;
         $previous                  = $block;
+        $deltaPreviousLevel        = 1;
 
         do {
             $previous = $previous->previous();
@@ -52,10 +53,10 @@ class HeadingRenderer implements CommonMark\Block\Renderer\BlockRendererInterfac
             if ($previous instanceof CommonMark\Block\Element\Heading) {
                 if ($previous->getLevel() < $block->getLevel()) {
                     $isFirstHeadingAtThisLevel = true;
-                    $deltaPreviousLevel = 1;
+                    $deltaPreviousLevel        = 1;
                 } else {
                     $isFirstHeadingAtThisLevel = false;
-                    $deltaPreviousLevel = $previous->getLevel() - $block->getLevel() + 1;
+                    $deltaPreviousLevel        = $previous->getLevel() - $block->getLevel() + 1;
                 }
 
                 break;
