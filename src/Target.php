@@ -128,7 +128,7 @@ class Target
                             '            \'headers\'    => [' . "\n" .
                             $this->arrayAsStringRepresentation($payload->headers, '                ') .
                             '            ],' . "\n" .
-                            '            \'body\'       => ' . var_export($payload->body, true) . ',' . "\n" .
+                            '            \'body\'       => ' . var_export(trim($payload->body), true) . ',' . "\n" .
                             '            \'schema\'     => ' . var_export($payload->schema, true) . ',' . "\n" .
                             '        ];' . "\n"
                         );
