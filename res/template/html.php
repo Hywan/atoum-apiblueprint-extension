@@ -33,6 +33,7 @@
         font-family: Open Sans, Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 0;
+        scroll-behavior: smooth;
       }
 
       header {
