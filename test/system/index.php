@@ -12,6 +12,15 @@ $router
 
             echo 'Hello, World!';
         }
+    )
+    ->get(
+        'schema',
+        '/schema',
+        function () {
+            header('Content-Type: application/json');
+
+            echo '{"message": "Hello, World!"}';
+        }
     );
 
 try {

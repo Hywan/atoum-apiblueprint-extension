@@ -89,6 +89,12 @@ class test extends atoum\test
                             new atoum\tools\diffs\variable($expectedResponse['body'], $response->body)
                         );
             }
+
+            if (!empty($expectedResponse['schema'])) {
+                $this
+                    ->json($response->body)
+                        ->fulfills($expectedResponse['schema']);
+            }
         }
 
         return $this;

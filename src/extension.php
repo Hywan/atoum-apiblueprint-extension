@@ -59,6 +59,23 @@ class extension implements atoum\extension
 
     public function setTest(atoum\test $test)
     {
+        $jsonAsserter = null;
+
+        $test
+            ->getAssertionManager()
+            ->setHandler(
+                'json',
+                function ($json, $charlist = null, $checkType = true) use ($test, &$jsonAsserter) {
+                    if (null === $jsonAsserter) {
+                        $jsonAsserter = new Asserter\Json($test->getAsserterGenerator());
+                    }
+
+                    $jsonAsserter->setWithTest($test);
+
+                    return $jsonAsserter->setWith($json, $charlist, $checkType);
+                }
+            );
+
         return $this;
     }
 

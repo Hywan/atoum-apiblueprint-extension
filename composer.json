@@ -18,12 +18,13 @@
         }
     },
     "require": {
-        "php"              : ">7.0",
-        "ext-curl"         : "*",
-        "ext-mbstring"     : "*",
-        "atoum/atoum"      : "~3.2",
-        "hoa/ustring"      : "~4.0",
-        "league/commonmark": "~0.16"
+        "php"                      : ">7.0",
+        "ext-curl"                 : "*",
+        "ext-mbstring"             : "*",
+        "atoum/atoum"              : "~3.2",
+        "hoa/ustring"              : "~4.0",
+        "justinrainbow/json-schema": "~5.2",
+        "league/commonmark"        : "~0.16"
     },
     "require-dev": {
         "hoa/dispatcher": "~1.0",
