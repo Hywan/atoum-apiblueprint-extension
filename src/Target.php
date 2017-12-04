@@ -157,7 +157,22 @@ class Target
 
     public function groupMessagesByTransactions(IR\Action $action): \Generator
     {
-        yield $action->messages;
+        $transaction           = $action->messages;
+        $transactionHasRequest = false;
+
+        foreach ($transaction as $message) {
+            if ($message instanceof IR\Request) {
+                $transactionHasRequest = true;
+
+                break;
+            }
+        }
+
+        if (false === $transactionHasRequest) {
+            array_unshift($transaction, new IR\Request());
+        }
+
+        yield $transaction;
     }
 
     public function stringToPHPIdentifier(string $string, bool $toLowerCase = true): string
