@@ -37,8 +37,8 @@ class Target extends test
             $target->compile($parser->parse($input), $collector);
 
             $this
-                ->string($output)
-                    ->isEqualTo(file_get_contents($uri));
+                ->string(file_get_contents($uri))
+                    ->isEqualTo($output);
 
             $collectorFileDescriptor = $resource->getValue($collector);
             ftruncate($collectorFileDescriptor, 0);
