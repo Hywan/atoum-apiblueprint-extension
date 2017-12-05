@@ -18,6 +18,34 @@ class test extends atoum\test
         return '\\';
     }
 
+    public function setJsonHandler(Configuration $configuration)
+    {
+        $jsonSchemaUriRetriever = new JsonSchema\UriRetriever();
+
+        foreach ($configuration->getJsonSchemaMountPoints() as $mountName => $mountValue) {
+            $jsonSchemaUriRetriever->mount($mountName, $mountValue);
+        }
+
+        $self         = $this;
+        $jsonAsserter = null;
+
+        $this
+            ->getAssertionManager()
+            ->setHandler(
+                'json',
+                function ($json) use ($self, &$jsonAsserter, $jsonSchemaUriRetriever) {
+                    if (null === $jsonAsserter) {
+                        $jsonAsserter = new Asserter\Json($self->getAsserterGenerator());
+                        $jsonAsserter->setJsonSchemaUriRetriever($jsonSchemaUriRetriever);
+                    }
+
+                    $jsonAsserter->setWithTest($self);
+
+                    return $jsonAsserter->setWith($json, null, null);
+                }
+            );
+    }
+
     public function responsesMatch(\Generator $responses, array $expectedResponses): self
     {
         foreach ($responses as $i => $response) {

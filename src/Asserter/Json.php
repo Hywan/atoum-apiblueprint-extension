@@ -13,8 +13,9 @@ use mageekguy\atoum;
  */
 class Json extends atoum\asserters\phpString
 {
-    protected $_innerAsserter = null;
-    protected $_data          = null;
+    protected $_innerAsserter     = null;
+    protected $_data              = null;
+    protected $_jsonSchemaStorage = null;
 
     public function __get($name)
     {
@@ -49,12 +50,26 @@ class Json extends atoum\asserters\phpString
         return $this;
     }
 
+    public function setJsonSchemaUriRetriever(JsonSchema\Uri\Retrievers\UriRetrieverInterface $uriRetriever): self
+    {
+        $retriever = new JsonSchema\Uri\UriRetriever();
+        $retriever->setUriRetriever($uriRetriever);
+
+        $this->_jsonSchemaStorage = new JsonSchema\SchemaStorage($retriever);
+
+        return $this;
+    }
+
     public function fulfills(string $schema): self
     {
         $schemaObject = $this->toSchemaObject($schema);
         $validator    = new JsonSchema\Validator();
 
-        $validator->check($this->valueIsSet()->_data, $schemaObject);
+        $validator->validate(
+            $this->valueIsSet()->_data,
+            $schemaObject,
+            JsonSchema\Constraints\Constraint::CHECK_MODE_VALIDATE_SCHEMA
+        );
 
         if ($validator->isValid() === true) {
             $this->pass();
@@ -103,11 +118,15 @@ class Json extends atoum\asserters\phpString
 
     protected function toSchemaObject(string $schema): \StdClass
     {
-        $schemaStorage = new JsonSchema\SchemaStorage();
+        $schemaStorage = $this->_jsonSchemaStorage;
         $schemaObject  = @json_decode($schema);
 
         if ($schemaObject === null) {
             throw new atoum\exceptions\logic\invalidArgument('Invalid JSON schema');
+        }
+
+        if (true === property_exists($schemaObject, '$ref')) {
+            $schemaObject = $schemaStorage->resolveRef($schemaObject->{'$ref'});
         }
 
         return $schemaObject;

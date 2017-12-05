@@ -8,7 +8,8 @@ use mageekguy\atoum;
 
 class extension implements atoum\extension
 {
-    protected $_apibFinder = null;
+    protected $_configuration   = null;
+    protected $_apibFinder      = null;
     protected $_directoryToTest = null;
 
     public function __construct(atoum\configurator $configurator = null)
@@ -37,12 +38,13 @@ class extension implements atoum\extension
                 ->addHandler($extensionHandler, ['--extension-apiblueprint']);
         }
 
-        $this->_apibFinder = new Finder();
+        $this->_configuration = new Configuration();
+        $this->_apibFinder    = new Finder();
     }
 
     public function addToRunner(atoum\runner $runner)
     {
-        $runner->addExtension($this);
+        $runner->addExtension($this, $this->getConfiguration());
 
         // This trick is necessary to add the directory containing the
         // generated tests after `atoum\runner::resetTestPaths` has been
@@ -59,28 +61,20 @@ class extension implements atoum\extension
 
     public function setTest(atoum\test $test)
     {
-        $jsonAsserter = null;
-
-        $test
-            ->getAssertionManager()
-            ->setHandler(
-                'json',
-                function ($json, $charlist = null, $checkType = true) use ($test, &$jsonAsserter) {
-                    if (null === $jsonAsserter) {
-                        $jsonAsserter = new Asserter\Json($test->getAsserterGenerator());
-                    }
-
-                    $jsonAsserter->setWithTest($test);
-
-                    return $jsonAsserter->setWith($json, $charlist, $checkType);
-                }
-            );
+        if ($test instanceof test) {
+            $test->setJsonHandler($test->getExtensionConfiguration($this));
+        }
 
         return $this;
     }
 
     public function handleEvent($event, atoum\observable $observable)
     {
+    }
+
+    public function getConfiguration(): Configuration
+    {
+        return $this->_configuration;
     }
 
     /**
