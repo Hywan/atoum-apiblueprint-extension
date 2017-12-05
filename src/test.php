@@ -18,6 +18,9 @@ class test extends atoum\test
         return '\\';
     }
 
+    /**
+     * Configure the `$this->json(…)` asserter.
+     */
     public function setJsonHandler(Configuration $configuration)
     {
         $jsonSchemaUriRetriever = new JsonSchema\UriRetriever();
@@ -46,6 +49,10 @@ class test extends atoum\test
             );
     }
 
+    /**
+     * The `responsesMatch` asserter checks that a collection of responses are
+     * valid regarding a collection of expected responses.
+     */
     public function responsesMatch(\Generator $responses, array $expectedResponses): self
     {
         foreach ($responses as $i => $response) {

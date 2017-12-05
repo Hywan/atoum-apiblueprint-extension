@@ -36,6 +36,32 @@ $extension->getAPIBFinder()->append(new FilesystemIterator('./apiblueprints'));
 $extension->compileAndEnqueue();
 ```
 
+### JSON schemas defined outside `.apib` files
+
+It is possible to define JSON schemas outside the `.apib` files. To do
+so, you must go through these 2 steps:
+
+  1. Mount a JSON schema directory on the extension's configuration,
+  2. Use `{"$ref": "json-schema://<mount>/schema.json"}` in the Schema
+     section of the API Blueprint documentation.
+     
+Example:
+
+  1. ```php
+     // .atoum.php
+     $extension->getConfiguration()->mountJsonSchemaDirectory('test', '/path/to/schemas/');
+     ```
+  2. ```apib
+     // my-spec.apib
+     + Response 200
+
+       + Schema
+
+         {"$ref": "json-schema://test/my-schema.json"}
+     ```
+     where `test` is the “mount name”, and `my-schema.json` is a valid
+     JSON schema in `/path/to/schemas/my-schema.json`.
+
 ## Testing
 
 Before running the test suites, the development dependencies must be installed:

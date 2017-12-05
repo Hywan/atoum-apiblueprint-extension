@@ -10,6 +10,15 @@ class UriRetriever extends FileGetContents
 {
     protected $_router = [];
 
+    /**
+     * JSON schemas can be declared outside to the `.apib` files. To access
+     * them, the user must use the `json-schema://host/path` URL
+     * (e.g. `{"$ref": "json-schema://…"}`), where:
+     *
+     *   * `host` is a mounted directory,
+     *   * The concatenation of the mounted directory and `path` produces a
+     *     valid path to a JSON schema file.
+     */
     public function retrieve($uri)
     {
         $parsed = parse_url($uri);
@@ -28,6 +37,9 @@ class UriRetriever extends FileGetContents
         return parent::retrieve($uri);
     }
 
+    /**
+     * Mount a directory.
+     */
     public function mount(string $rootName, string $rootPath)
     {
         $this->_router[$rootName] = $rootPath . DIRECTORY_SEPARATOR;
@@ -36,10 +48,5 @@ class UriRetriever extends FileGetContents
     public function unmount(string $rootName)
     {
         unset($this->_router[$rootName]);
-    }
-
-    public function get()
-    {
-        return $this->_router;
     }
 }
