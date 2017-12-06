@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./res/logo.png" alt="atoum's extension logo" width="200" />
+</p>
+
 # atoum/apiblueprint-extension [![Build Status](https://travis-ci.org/Hywan/atoum-apiblueprint-extension.svg?branch=master)](https://travis-ci.org/Hywan/atoum-apiblueprint-extension)
 
 [atoum](http://atoum.org/) is a PHP test
@@ -5,13 +9,17 @@ framework. [API Blueprint](https://apiblueprint.org/) is a high-level
 HTTP API description language.
 
 API Blueprint is only a text file. The goal of this atoum extension is
-to compile API Blueprint files into executable tests. It works as any
-test written with the atoum API, and it works within the atoum
+to **compile API Blueprint files into executable tests**. It works as
+any test written with the atoum API, and it works within the atoum
 ecosystem.
 
 In addition, this atoum extension provides a very simple script to
-render many API Blueprint files into a standalone HTML single-page
+**render** many API Blueprint files into a standalone HTML single-page
 file.
+
+<p align="center">
+  <img src="./res/overview.svg" alt="Process overview" width="580" />
+</p>
 
 ## Installation
 
