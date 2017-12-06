@@ -4,8 +4,6 @@
 
 # atoum/apiblueprint-extension [![Build Status](https://travis-ci.org/Hywan/atoum-apiblueprint-extension.svg?branch=master)](https://travis-ci.org/Hywan/atoum-apiblueprint-extension)
 
-> A documentation is nothing if it can't be tested.
-
 **The candidates**:
 
   1. [atoum](http://atoum.org/) is a PHP test framework,
@@ -27,7 +25,7 @@ In more details, here is what happens:
 
   1. A finder iterates over `.apib` files,
   2. For each file, it is parsed into an intermediate representation,
-  3. The intermediate representation is compiled to a target to “atoum
+  3. The intermediate representation is compiled to target “atoum
      tests”,
   4. The fresh tests are pushed in the test queue of atoum,
   5. atoum executes everything as usual.
@@ -49,7 +47,6 @@ $ composer require atoum/apiblueprint-extension '~0.1'
 To enable the extension, the `.atoum.php` configuration file must be edited to add:
 
 ```php
-// Enable the extension.
 $extension = new atoum\apiblueprint\extension($script);
 $extension->addToRunner($runner);
 
@@ -57,7 +54,7 @@ $extension->addToRunner($runner);
 
 ### Configure the finder
 
-Assuming the `.apib` files are located in the `apiblueprints`
+Assuming the `.apib` files are located in the `./apiblueprints`
 directory, the following code adds this directory to the API Blueprint
 finder, compiles everything to tests, and enqueue them:
 
@@ -73,7 +70,7 @@ to
 [validate HTTP requests and responses](https://apiblueprint.org/documentation/advanced-tutorial.html#json-schema) when
 the message aims at being a valid JSON message.
 
-It is recommended to define JSON schemas outside the `.apib` files for several reasons:
+We recommend to define JSON schemas outside the `.apib` files for several reasons:
 
   * They can be versionned independently from the `.apib` files,
   * They can be used inside your application to validate incoming HTTP
@@ -89,13 +86,13 @@ To do so, one must go through these 2 steps:
      
 Example:
 
-  1. In your `.atoum.php` file where the extension is configured:
+  1. In the `.atoum.php` file where the extension is configured:
 
      ```php
      $extension->getConfiguration()->mountJsonSchemaDirectory('test', '/path/to/schemas/');
      ```
 
-  2. In your API Blueprint file:
+  2. In the API Blueprint file:
   
      ```apib
      + Response 200
@@ -125,8 +122,7 @@ $ composer test
 
 ## Compliance with the API Blueprint specification
 
-This extension implements
-the
+This atoum extension implements the
 [API Blueprint specification](https://apiblueprint.org/documentation/specification.html).
 
 | Language features           | Implemented? |
