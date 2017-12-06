@@ -41,7 +41,7 @@ require
 [`atoum/apiblueprint-extension`](https://packagist.org/packages/atoum/apiblueprint-extension):
 
 ```sh
-$ composer require atoum/apiblueprint-extension '~0.1'
+$ composer require atoum/apiblueprint-extension '~0.2'
 ```
 
 To enable the extension, the `.atoum.php` configuration file must be edited to add:
