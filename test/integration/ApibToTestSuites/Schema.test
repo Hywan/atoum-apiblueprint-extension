@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: https://example.org/
+HOST: https://example.org
 
 # API Name
 
@@ -45,7 +45,7 @@ class API Name extends \atoum\apiblueprint\test
 
     public function beforeTestMethod($testMethod)
     {
-        $this->_host = 'https://example.org/';
+        $this->_host = 'https://example.org';
     }
 
     public function test resource r 1 action foo bar transaction 0()

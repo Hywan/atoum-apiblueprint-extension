@@ -28,7 +28,7 @@ class Target
             '    protected $_host = null;' . "\n\n" .
             '    public function beforeTestMethod($testMethod)' . "\n" .
             '    {' . "\n" .
-            '        $this->_host = \'' . $document->metadata['host'] . '\';' . "\n" .
+            '        $this->_host = \'' . rtrim($document->metadata['host'], '/') . '\';' . "\n" .
             '    }'
         );
 

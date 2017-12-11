@@ -1,16 +1,11 @@
 FORMAT: 1A
-HOST: https://example.org
-
-# Basic _example_ API!
-
-Welcome the **ACME Blog** API. This API provides access to the **ACME
-Blog** service.
+HOST: https://example.org/
 
 ---[to]---
 
 namespace atoum\apiblueprint\generated;
 
-class Basic _example_ API extends \atoum\apiblueprint\test
+class Unknown0e17030576bafa1b4700220c87de294f5d979c96 extends \atoum\apiblueprint\test
 {
     protected $_host = null;
 
