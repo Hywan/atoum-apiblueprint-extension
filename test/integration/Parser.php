@@ -115,14 +115,14 @@ class Parser extends test
         $this
             ->given(
                 $parser = new SUT(),
-                $datum  = '# Foo Bar [/foo/bar]'
+                $datum  = '# Foo Bar [/]'
             )
             ->when($result = $parser->parse($datum))
             ->then
                 ->let(
                     $resource              = new IR\Resource(),
                     $resource->name        = 'Foo Bar',
-                    $resource->uriTemplate = '/foo/bar',
+                    $resource->uriTemplate = '/',
 
                     $document              = new IR\Document(),
                     $document->resources[] = $resource

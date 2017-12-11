@@ -489,12 +489,12 @@ class Parser
         }
 
         // Resource section.
-        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<uriTemplate>\/[^\]]+)\]/', $headerContent, $matches)) {
+        if (0 !== preg_match('/^(?<name>[^\[]+)\[(?<uriTemplate>\/[^\]]*)\]/', $headerContent, $matches)) {
             return self::HEADER_RESOURCE;
         }
 
         // Action section.
-        if (0 !== preg_match('/(?:^(?<requestMethod1>[A-Z]+)$)|(?:^(?<name>[^\[]+)\[(?<requestMethod2>[A-Z]+)(?:\h+(?<uriTemplate>\/[^\]]+))?\])/', $headerContent, $matches)) {
+        if (0 !== preg_match('/(?:^(?<requestMethod1>[A-Z]+)$)|(?:^(?<name>[^\[]+)\[(?<requestMethod2>[A-Z]+)(?:\h+(?<uriTemplate>\/[^\]]*))?\])/', $headerContent, $matches)) {
             if (empty($matches['requestMethod1'])) {
                 $matches['requestMethod1'] = null;
             }
